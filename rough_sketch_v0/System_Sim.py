@@ -25,13 +25,16 @@ from threading import Thread
 #====== Global Variables (settings) ======
 
 RUN_SIM = True
+SIM_LENGTH = 1  # number of mintues simulation will run before ending
 
 
 #--Network connection
-host = "0.0.0.0"
+# host = "0.0.0.0"
+host = "localhost"
 port = 10000
 LISTENER = socket.socket()
 LISTENER.bind((host, port))
+TIMEOUT = 65.0
 
 #--System Info
 Devices = []      # list of connected appliances
@@ -51,8 +54,12 @@ class Device():
 		self.is_connected = True
 		self.type = "undetermined"
 		self.ID = "dev00"
+		self.getInfo()
 		
 	def recieveMessage(self):
+		'''
+		Wrapper for socket.recv() for internal use (within class)
+		'''
 		message = ""
 		try:
 			message = self.connection.recv(512).decode()
@@ -73,10 +80,14 @@ class Device():
 		return message
 		
 	def getInfo(self):
+		'''
+		Run during constructor to retrieve device information
+		'''
 		M = "getInfo"
 		self.connection.send(M.encode())  #socket_send
 		infostring = self.recieveMessage()
-		info = infostring.split(str=";")
+		# info = infostring.split(str=";")
+		info = infostring.split(";")
 		self.type = info[0]
 		self.ID = info[1]
 		self.type = self.type.strip()
@@ -84,6 +95,10 @@ class Device():
 		return
 		
 	def getData(self):
+		'''
+		recieve message from Device,
+		return message as a string
+		'''
 		M = "getData"
 		self.connection.send(M.encode())  #socket_send
 		datastring = self.recieveMessage()
@@ -101,6 +116,14 @@ class Snapshot():
 		self.data[Did] = r  # Did: Device ID, r: record (current state/power usage)
 		return
 		
+	def __str__(self):
+		'''format data as a string'''
+		R = str(self.time)
+		for devID, rec in self.data.items():
+			R += "  -  {}:{}".format(devID, rec)
+		return R
+	
+		
 #------------ end of class definition ---------------------
 
 
@@ -113,8 +136,10 @@ def waitConnection():
 	Return connected socket with a 60 sec timeout
 	return False if Exception occured
 	'''
+	# TIMEOUT = 65.0
 	try:
 		print("..listening..", end=" ")
+		LISTENER.settimeout(TIMEOUT)
 		LISTENER.listen(5)
 		print(" .. ..")
 		c, addr = LISTENER.accept()
@@ -126,8 +151,8 @@ def waitConnection():
 		print(ex_msg)
 		print("=-><-="*7)
 		return False
-	c.settimeout(60.0)
-	print("timeout set to 60")
+	c.settimeout(TIMEOUT)
+	print("timeout set to {:02}s".format(TIMEOUT))
 	return c
 
 
@@ -163,7 +188,10 @@ def tunnel(A, msg):
 #-----------------------------------------
 #-  Connect to Appliances
 print("\n--------------------------------------------------\n")
-while Devices.size() < N_Appliances:
+backup = 0
+while len(Devices) < N_Appliances:
+	backup += 1
+	if backup > (N_Appliances*2): break
 	#-connect via waitConnection()
 	conn_sock = waitConnection()
 	if not conn_sock:
@@ -172,26 +200,24 @@ while Devices.size() < N_Appliances:
 		continue
 		
 	newDevice = Device(conn_sock)
-	newDevice.getInfo()
+	# newDevice.getInfo()
 	#--> check Device.ID for uniqueness
 	
+	Devices.append(newDevice)
 	
-	for G in game_list:
-		msg = "game: "
-		msg += G.getGameInfo()
-		my_send(conn_sock, msg)
-	print(".:.:. conn_sock was")
 	#--> send list of currently connected appliances
 	#--> send new connection info to currently connected appliances
-		
+	#-->  ... actually, just let Device connect to Sim, and let Sim handle all communications
+
 print("--------------------------------------------------")
 
 
 #-----------------------------------------
 #-  Run simulation
 
+minutes = 0
 while RUN_SIM:
-	T = time.now()  #--?SYNTAX?--#
+	T = time.time()
 	tmp_S = Snapshot(T)
 	#-retrieve data from Devices
 	for D in Devices:
@@ -199,10 +225,30 @@ while RUN_SIM:
 		#--> send data to each other Device
 	#-save data
 	history[T] = tmp_S
+	minutes += 1
+	print("saved data #{}".format(minutes))
+	
 	#--> should modify RUN_SIM somewhere to prevent infinite loop...
-	time.wait(60)   #--?SYNTAX?--#
+	if minutes > SIM_LENGTH : break
+	time.sleep(6)
 
 #=========================================
+
+
+#-----------------------------------------
+#-  Print results
+
+print("--------------------------------------------------")
+for S in history:
+	print(history[S])
+	
+print("--------------------------------------------------")
+
+
+time.sleep(5)
+any_key = input("enter any key to exit")
+
+print("you chose the [{}] 'key'".format(any_key))
 
 ## end program
 
