@@ -10,55 +10,61 @@ using namespace std;
 class Device{
   public:
     string name;
-    double power;		             //power consumption					 	hard coded into device name
+    double power;           //power consumption hard coded into device name
     double credits;
-    double income;               //hard coded
-    int time_used;   	       		 //how many time slots it has already used			
-    int status;			             //on/off
-    double failed_bids;          //amount of failed bids
-    vector<int> past;			       //stores the previous 14 minutes
+    double income;          //hard coded
+    int time_used;          //how many time slots it has already used			
+    int status;             //on/off
+    double failed_bids;     //amount of failed bids
+    vector<int> past;       //stores the previous 14 minutes
     double desperation;
     time_t last_time_on;
-
+    bool is_initialized;
 
     double get_bid(int);
-    int device_info();
+    Device(string);
     void set_desperation();
     void bidding();
-}device;
+};
 
 
-int Device::device_info(){
+Device::Device(string name){
+  is_initialized = false;
+  if(strcmp(name.c_str(), "waterheater")==0){
+    power = 3.0;
+    credits = 100000.0;
+    income = 0.0;
+    failed_bids = 0.0;
+    desperation = 0.0;
+    is_initialized = true;
 
-  if(strcmp(device.name.c_str(), "waterheater")==0){
-    device.power = 3.0;
-    device.credits = 100000.0;
-    device.income = 0.0;
-    device.failed_bids = 0.0;
-    device.desperation = 0.0;
-  
-  }else if(strcmp(device.name.c_str(), "hvac")==0){
-    device.power = 0.25;
-    device.credits = 100000.0;
-    device.income = 0.0;
-    device.failed_bids = 0.0;
-    device.desperation = 0.0;
+  }else if(strcmp(name.c_str(), "hvac")==0){
+    power = 0.25;
+    credits = 100000.0;
+    income = 0.0;
+    failed_bids = 0.0;
+    desperation = 0.0;
+     is_initialized = true;
 
-  }else if(strcmp(device.name.c_str(), "carcharger")==0){
-    device.power = 6.6;
-    device.credits = 100000.0;
-    device.income = 0.0;
-    device.failed_bids = 0.0;
-    device.desperation = 0.0;
-  }else if(strcmp(device.name.c_str(), "poolpump")==0){
-    device.power = 0.4;
-    device.credits = 100000.0;
-    device.income = 0.0;
-    device.failed_bids = 0.0;
-    device.desperation = 0.0;
+  }else if(strcmp(name.c_str(), "carcharger")==0){
+    power = 6.6;
+    credits = 100000.0;
+    income = 0.0;
+    failed_bids = 0.0;
+    desperation = 0.0;
+    is_initialized = true;
+
+  }else if(strcmp(name.c_str(), "poolpump")==0){
+    power = 0.4;
+    credits = 100000.0;
+    income = 0.0;
+    failed_bids = 0.0;
+    desperation = 0.0;
+    is_initialized = true;
+
   }else{
     cout<<"Syntax Error: ./bidding <waterheater|hvac|carcharger|poolpump>"<<endl;
-    return 0; 
+    return; 
   
   }
 }
@@ -71,22 +77,22 @@ double Device::get_bid(int stage){
   double bid;
 
   if(stage = 1){
-    bid = device.power;   //bids how much power they use
-    if(device.credits - bid < 0){  
+    bid = power;   //bids how much power they use
+    if(credits - bid < 0){  
       return 0.0;			
     }else
       return bid;
 
   }else if(stage = 2){
-    bid = device.power*(1+device.desperation); //bids power * how desperate they are
-    if(device.credits - bid < 0){
+    bid = power*(1+desperation); //bids power * how desperate they are
+    if(credits - bid < 0){
       return 0.0;
     }else
       return bid;
 
   }else
-    bid = device.power*(1+device.desperation)*1.5;  //bids power * desperation * 1.5
-    if(device.credits - bid < 0){
+    bid = power*(1+desperation)*1.5;  //bids power * desperation * 1.5
+    if(credits - bid < 0){
       return 0.0;
     }else
       return bid;
@@ -97,12 +103,21 @@ void Device::set_desperation(){
 
 //look at the previous 14 minutes or the last time the device was on and determine how bad it needs to be turned on. Also look at failed bids.
   
-device.desperation += device.failed_bids*0.1;   //will make more complicated using last time on
+desperation += failed_bids*0.1;   //will make more complicated using last time on
 
 
 }
 
 void Device::bidding(){
+
+  struct Bidders{
+    string address;
+    double bid;
+    double power;
+
+  };
+
+  //vector<Bidders> bidders;
   
   double first_bid, second_bid, third_bid;
   first_bid = get_bid(1);
@@ -237,7 +252,7 @@ int print_slots(vector<Time> times){
   return 0;
 }
 
-int main(int argc, char* argv[]){
+/*int main(int argc, char* argv[]){
 
   if(argc!=2){
    
@@ -247,17 +262,23 @@ int main(int argc, char* argv[]){
   }
   vector<Time> times;
   times = create_slots();
-  print_slots(times);
-  device.name=argv[1];
-  device.device_info(); 
-  cout<<device.power<<"  "<<device.failed_bids<<endl;
+//print_slots(times);
+  Device device (argv[1]);
 
+  cout<<device.power<<"  "<<device.failed_bids<<endl;
+//check to see if new devices have been added each minute
   return 0;
 }
+
+*/
+
+
+
+
 //Bidding
 //Am I on? Am I manually overridden?
-//remember to update failed bid variable after each minute
-//can I bid?
+//Remember to update failed bid variable after each minute
+//Can I bid? Should I bid?
 
 /*First Bidding stage
 
