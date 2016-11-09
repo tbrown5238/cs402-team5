@@ -25,6 +25,7 @@
 
 #include "time_entry.h"
 #include "appliance.h"
+#include "bidding.cpp"
 
 // #include "device.h"
 
@@ -119,26 +120,32 @@ int main(int argc, char* argv[]){
 	string my_info;  //-string to send to sim_server to store as metadata
 	string input_file;
 	float setLOAD;
+	string Device_arg;
 	
 	if(appl_type == "CC"){
 		my_info = "CarCharger; dev" + myID;
 		input_file = fname_CC_01;
+		Device_arg = "carcharger";
 		setLOAD = 6.6;
 	}else if(appl_type == "HV"){
 		my_info = "HVAC; dev" + myID;
 		input_file = fname_HV_01;
+		Device_arg = "hvac";
 		setLOAD = 0.25;
 	}else if(appl_type == "PP"){
 		my_info = "PoolPump; dev" + myID;
 		input_file = fname_PP_01;
+		Device_arg = "poolpump";
 		setLOAD = 0.4;
 	}else if(appl_type == "WH"){
 		my_info = "WaterHeater; dev" + myID;
 		input_file = fname_WH_01;
+		Device_arg = "waterheater";
 		setLOAD = 3.0;
 	}else{
 		cerr << "Error, appliance type [" << appl_type << "] not recognized" << endl;
 		my_info = "CarCharger; dev" + myID;
+		Device_arg = "carcharger";
 		input_file = fname_CC_01;
 		setLOAD = 6.6;
 	}
@@ -149,6 +156,20 @@ int main(int argc, char* argv[]){
 	cout << endl;
 	
 	appliance ME(setLOAD);
+	
+	
+	//-----------------------------------------
+	//-  integrate Device class
+	
+	
+	cout << "creatign device" << endl;
+	
+	Device device (Device_arg.c_str());
+
+	cout << device.power << "  " << device.failed_bids << endl;
+	
+	
+	cout << " ^^ should NOT be an empty line ^^" << endl;
 	
 	
 	//-----------------------------------------

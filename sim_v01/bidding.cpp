@@ -252,26 +252,6 @@ int print_slots(vector<Time> times){
   return 0;
 }
 
-/*int main(int argc, char* argv[]){
-
-  if(argc!=2){
-   
-    cout<<"Syntax Error: ./bidding <waterheater|hvac|carcharger|poolpump>"<<endl;
-    return 0;
-
-  }
-  vector<Time> times;
-  times = create_slots();
-//print_slots(times);
-  Device device (argv[1]);
-
-  cout<<device.power<<"  "<<device.failed_bids<<endl;
-//check to see if new devices have been added each minute
-  return 0;
-}
-
-*/
-
 
 
 

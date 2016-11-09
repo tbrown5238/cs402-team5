@@ -42,7 +42,7 @@ public:
 	bool is_valid;
 	string L;
 	string subL;
-	float energy;    //-power consumption of the appliance
+	double energy;    //-power consumption of the appliance
 	
 	time_t t;
 	struct tm tm;
