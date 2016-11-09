@@ -27,7 +27,8 @@
 #include "appliance.h"
 #include "bidding.cpp"
 
-// #include "device.h"
+// #include "comm.h"
+
 
 using namespace std;
 
@@ -119,7 +120,7 @@ int main(int argc, char* argv[]){
 	string myID = "0" + (string)argv[2];
 	string my_info;  //-string to send to sim_server to store as metadata
 	string input_file;
-	float setLOAD;
+	double setLOAD;
 	string Device_arg;
 	
 	if(appl_type == "CC"){
@@ -161,20 +162,14 @@ int main(int argc, char* argv[]){
 	//-----------------------------------------
 	//-  integrate Device class
 	
-	
-	cout << "creatign device" << endl;
-	
+	cout << "----creating device----------------------" << endl;
 	Device device (Device_arg.c_str());
-
 	cout << device.power << "  " << device.failed_bids << endl;
-	
-	
-	cout << " ^^ should NOT be an empty line ^^" << endl;
+	cout << "----^^ should NOT be an empty line ^^----" << endl;
 	
 	
 	//-----------------------------------------
 	//-  connect to simulation server
-	
 	
     int port = 10000;
     string host = "localhost";

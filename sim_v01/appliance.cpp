@@ -28,7 +28,7 @@ extern string DELIM;
 
   /*
 constructor  */
-void appliance::initialize(float init_LOAD){
+void appliance::initialize(double init_LOAD){
 	LOAD = init_LOAD;
 	Balance = 0;
 	prev_time = 0;

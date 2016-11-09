@@ -28,9 +28,9 @@ class appliance{
 public:
 	//-constructors
 	appliance() { initialize(300); }  //-provide default setting
-	appliance(float init_LOAD) { initialize(init_LOAD); }
+	appliance(double init_LOAD) { initialize(init_LOAD); }
 	~appliance(){ if(infile.is_open()){ infile.close(); } }
-	void initialize(float init_LOAD);
+	void initialize(double init_LOAD);
 
 	//-input files
 	int add_datafile(string fname);
@@ -71,10 +71,10 @@ public:
 	
 // protected:
 	ifstream infile;
-	float LOAD;    //-power consumption of the appliance
-	float Balance; //-running total of energy that needs to be spent
+	double LOAD;    //-power consumption of the appliance
+	double Balance; //-running total of energy that needs to be spent
 	
-	float avg_L;
+	double avg_L;
 	int avg_N;
 	
 	int prev_time;
