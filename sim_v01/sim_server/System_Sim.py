@@ -30,6 +30,12 @@ RUN_SIM_SIMPLE = True
 RUN_SIM = False
 SIM_LENGTH = 14  # number of "mintues" simulation will run before ending
 
+#-table to lookup power rating
+device_table = {
+	"CarCharger":6.6,
+	"HVAC":0.25,
+	"PoolPump":0.4,
+	"WaterHeater":3.0}
 
 #--Network connection
 # host = "0.0.0.0"
@@ -56,8 +62,29 @@ class Device():
 		self.connection = connection
 		self.is_connected = True
 		self.type = "undetermined"
+		self.power_rating = 0.5
 		self.ID = "dev00"
 		self.getInfo()
+		print("--I AM:\n {}  ({}) : {}".format(self.ID, self.type, self.power_rating))
+		self.last_msg = ""
+		
+	def getInfo(self):
+		'''
+		Run during constructor to retrieve device information
+		'''
+		M = "getInfo"
+		print(">> getInfo:send")
+		self.connection.send(M.encode())  #socket_send
+		print("<< getInfo:recieveMessage")
+		infostring = self.recieveMessage()
+		# info = infostring.split(str=";")
+		info = infostring.split(";")
+		self.type = info[0]
+		self.ID = info[1]
+		self.type = self.type.strip()
+		self.power_rating = device_table.get(self.type, 0.5)
+		self.ID = self.ID.strip()
+		return
 		
 	def recieveMessage(self):
 		'''
@@ -80,24 +107,8 @@ class Device():
 			print("=-><-="*7)
 			message = "---EXCEPTION---"
 		message = message.rstrip("\n")
+		self.last_msg = message
 		return message
-		
-	def getInfo(self):
-		'''
-		Run during constructor to retrieve device information
-		'''
-		M = "getInfo"
-		print(">> getInfo:send")
-		self.connection.send(M.encode())  #socket_send
-		print("<< getInfo:recieveMessage")
-		infostring = self.recieveMessage()
-		# info = infostring.split(str=";")
-		info = infostring.split(";")
-		self.type = info[0]
-		self.ID = info[1]
-		self.type = self.type.strip()
-		self.ID = self.ID.strip()
-		return
 		
 	def getData(self):
 		'''
@@ -111,6 +122,12 @@ class Device():
 		datastring = self.recieveMessage()
 		#--> should probably include some error checking here
 		return datastring.strip()
+		
+	def info_str(self):
+		'''
+		return formatted string with device information
+		'''
+		return "{},{}".format(self.ID, self.power_rating)
 		
 	def getLine(self):
 		'''
@@ -206,6 +223,11 @@ def tunnel(A, msg):
 #-  Connect to Appliances
 print("\n--------------------------------------------------\n")
 backup = 0
+''' TODO:
+- modify connection protocol to allow connect/disconnect of devices
+-- convert Device to a threaded class
+
+'''
 while len(Devices) < N_Appliances:
 	backup += 1
 	if backup > (N_Appliances*2): break
@@ -247,11 +269,13 @@ while RUN_SIM_SIMPLE:
 		# print("[" + tmpLine + "]")
 	minutes += 1
 	print("saved data #{}".format(minutes))
-	#--> should modify RUN_SIM somewhere to prevent infinite loop...
+	#--> should modify RUN_SIM_SIMPLE somewhere to prevent infinite loop...
 	if break_flag : break
 	if minutes > SIM_LENGTH : break
 	time.sleep(1)
 
+
+#---section not currently used
 minutes = 0
 N = 0
 while RUN_SIM:
@@ -280,7 +304,6 @@ while RUN_SIM:
 
 print("--------------------------------------------------")
 for S in history:
-	# print(history[S])
 	print("[" + history[S] + "]")
 	
 print("--------------------------------------------------")

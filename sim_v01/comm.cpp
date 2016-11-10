@@ -20,7 +20,6 @@ using namespace std;
 
 
 //-constructor
-
 comm::comm(){
 	//-initialize basic metadata
     port = 10000;
@@ -79,8 +78,10 @@ int comm::c_send(string MSG) {
 string comm::c_recv() {
 	memset(buf, 0, buflen);
 	recv(server, buf, buflen, 0);
-	
-	return(string(buf));
+	// return(string(buf));
+	string R = string(buf);
+	R.erase(R.end()-1);
+	return(R);
 }
 
 //-communicate bidding information

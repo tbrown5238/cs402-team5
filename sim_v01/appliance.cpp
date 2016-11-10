@@ -139,12 +139,8 @@ int appliance::next_line(){
 		Balance += new_entry.energy;
 	}
 	else{
-		// cout << "--[" << L << "]--" << endl;
-		// cout << "!! (L.length() <= 0)  :  " << L.length() << endl;
-		// cout << ". history.size()  :  " << history.size() << endl;
 		is_valid = false;
 	}
-	// return L.length();
 	return is_valid;
 }
 
@@ -161,12 +157,6 @@ int appliance::read_all(){
 	
 	cout << "found [" << N << "] lines..." << endl;
 	cout << "--printing history, size: [" << history.size() << "]" << endl;
-	/*
-	int i;
-	for (i=0;i<history.size();i++){
-		cout << history[i].L << endl;
-	}
-	*/
 	// dump_data();     //-dump all
 	dump_nonempty(); //-reduce output
 	

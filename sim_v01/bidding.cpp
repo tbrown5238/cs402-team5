@@ -75,7 +75,8 @@ double Device::get_bid(int stage){
 
 void Device::set_desperation(){
 
-//look at the previous 14 minutes or the last time the device was on and determine how bad it needs to be turned on. Also look at failed bids.
+//look at the previous 14 minutes or the last time the device was on and determine how bad it needs to be turned on.
+//Also look at failed bids.
   
 desperation += failed_bids*0.1;   //will make more complicated using last time on
 
