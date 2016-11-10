@@ -274,5 +274,4 @@ subtract bid from total money winner has.
 update time slot with owner of slot
 
 
-
 */

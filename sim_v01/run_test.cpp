@@ -26,7 +26,8 @@
 
 #include "time_entry.h"
 #include "appliance.h"
-#include "bidding.cpp"
+// #include "bidding.cpp"
+#include "bidding.h"
 
 // #include "comm.h"
 
