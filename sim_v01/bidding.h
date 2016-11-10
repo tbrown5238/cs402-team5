@@ -27,3 +27,5 @@ class Device{
     void set_desperation();
     void bidding();
 };
+
+#endif
