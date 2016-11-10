@@ -1,12 +1,20 @@
 #ifndef COMM_H
 #define COMM_H
 
+// #include <arpa/inet.h>
+// #include <errno.h>
+#include <netdb.h>
+#include <stdlib.h>
+// #include <sys/types.h>
+// #include <sys/socket.h>
+#include <unistd.h>
+
+#include <string.h>
+#include <string>
+
 #include <iostream>
 #include <fstream>
-#include <string>
-#include <cstdlib>
-#include <ctime>
-#include <vector>
+#include <sstream>
 
 
 using namespace std;
@@ -22,11 +30,11 @@ public:
 	~comm(){ delete buf; }
 	
 	//-establish connection
-	bool connect();
+	bool c_connect();
 
 	//-basic send/recieve
-	int send(string MSG);
-	string recv();
+	int c_send(string MSG);
+	string c_recv();
 
 	//-communicate bidding information
 	int send_bid(int ID, double bid);
@@ -45,7 +53,7 @@ protected:
 	
 	
 	//-send/recieve
-	int buflen = 1024;
+	int buflen;
 	char* buf;
 	char send_buff[1024];
 

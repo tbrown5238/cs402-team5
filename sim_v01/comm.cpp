@@ -21,7 +21,7 @@ using namespace std;
 
 //-constructor
 
-void comm::comm(){
+comm::comm(){
 	//-initialize basic metadata
     port = 10000;
     host = "localhost";
@@ -54,7 +54,7 @@ void comm::comm(){
 
 
 //-establish connection
-bool comm::connect(){
+bool comm::c_connect(){
 	//-connect to server
 	if (connect(server,(const struct sockaddr *)&server_addr,sizeof(server_addr)) < 0) {
 		perror("connect");
@@ -69,14 +69,14 @@ bool comm::connect(){
 
 
 //-basic send
-int comm::send(string MSG) {
+int comm::c_send(string MSG) {
 	cout << "-- sending: [" << MSG << "]" << endl;
 	send(server, MSG.c_str(), MSG.length(), 0);
 	return(1);
 }
 
 //-basic recieve
-string comm::recv() {
+string comm::c_recv() {
 	memset(buf, 0, buflen);
 	recv(server, buf, buflen, 0);
 	

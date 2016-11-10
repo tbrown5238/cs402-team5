@@ -9,19 +9,20 @@
 *
 ========================================== */
 
-#include <arpa/inet.h>
-#include <errno.h>
+// #include <arpa/inet.h>
+// #include <errno.h>
 #include <netdb.h>
 #include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
+// #include <sys/types.h>
+// #include <sys/socket.h>
 #include <unistd.h>
 
+#include <string.h>
 #include <string>
-#include <sstream>
-#include <fstream>
+
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 #include "time_entry.h"
 #include "appliance.h"
@@ -170,40 +171,41 @@ int main(int argc, char* argv[]){
 	
 	//-----------------------------------------
 	//-  connect to simulation server
-	
-    int port = 10000;
-    string host = "localhost";
+
+	int port = 10000;
+	string host = "localhost";
 	
 //=========================
-    //-use DNS to get IP address
-    struct hostent *hostEntry;
-    hostEntry = gethostbyname(host.c_str());
-    if (!hostEntry) {
-        cout << "No such host name: " << host << endl;
-        exit(-1);
-    }
+	//-use DNS to get IP address
+	struct hostent *hostEntry;
+	hostEntry = gethostbyname(host.c_str());
+	if (!hostEntry) {
+		cout << "No such host name: " << host << endl;
+		exit(-1);
+	}
 
-      //-setup socket address structure
-    struct sockaddr_in server_addr;
-    memset(&server_addr,0,sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(port);
-    memcpy(&server_addr.sin_addr, hostEntry->h_addr_list[0], hostEntry->h_length);
+	//-setup socket address structure
+	struct sockaddr_in server_addr;
+	memset(&server_addr,0,sizeof(server_addr));
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_port = htons(port);
+	memcpy(&server_addr.sin_addr, hostEntry->h_addr_list[0], hostEntry->h_length);
 
-      //-create socket
-    int server = socket(PF_INET,SOCK_STREAM,0);
-    if (server < 0) {
-        perror("socket");
-        exit(-1);
-    }
+	//-create socket
+	int server = socket(PF_INET,SOCK_STREAM,0);
+	if (server < 0) {
+		perror("socket");
+		exit(-1);
+	}
 	bool server_is_open = false;
 
 // /*--
-      //-connect to server
-    if (connect(server,(const struct sockaddr *)&server_addr,sizeof(server_addr)) < 0) {
-        perror("connect");
-        exit(-1);
-    }
+	//-connect to server
+	if (connect(server,(const struct sockaddr *)&server_addr,sizeof(server_addr)) < 0) {
+		perror("connect");
+		cout << "---error here---" << endl;
+		exit(-1);
+	}
 	else{
 		server_is_open = true;
 	}
@@ -231,7 +233,7 @@ int main(int argc, char* argv[]){
 	int buflen = 1024;
 	char* buf = new char[buflen+1];
 	
-    //-recieve initial message ("getData")
+	//-recieve initial message ("getData")
 	my_recv(server, buf, buflen);
 
 	//-reply with device data
@@ -309,8 +311,8 @@ int main(int argc, char* argv[]){
 	//-----------------------------------------
 	//-  bookkeeping
 
-    //-Close socket
-    if(server_is_open){ close(server); }
+	//-Close socket
+	if(server_is_open){ close(server); }
 	
 	
 	cerr << "happy exit" << endl << "hit enter to exit" << endl;
