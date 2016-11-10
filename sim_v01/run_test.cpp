@@ -29,7 +29,7 @@
 // #include "bidding.cpp"
 #include "bidding.h"
 
-// #include "comm.h"
+#include "comm.h"
 
 
 using namespace std;
@@ -173,6 +173,15 @@ int main(int argc, char* argv[]){
 	//-----------------------------------------
 	//-  connect to simulation server
 
+	comm COMM;
+	if(COMM.c_connect()){
+		cout << "-=-=-=-=-| Connection established |-=-=-" << endl;
+	} else{
+		cout << "-!!!-!!!-| FAILED CONNECTION |-!!!-" << endl;
+		
+		exit(-1);
+	}
+/*
 	int port = 10000;
 	string host = "localhost";
 	
@@ -212,6 +221,7 @@ int main(int argc, char* argv[]){
 	}
 //-------------------------connected
 //=========================
+*/
 	
 	
 	//-----------------------------------------
@@ -233,16 +243,20 @@ int main(int argc, char* argv[]){
 	//-allocate buffer
 	int buflen = 1024;
 	char* buf = new char[buflen+1];
+	string response;
 	
 	//-recieve initial message ("getData")
-	my_recv(server, buf, buflen);
+	// my_recv(server, buf, buflen);
+	response = COMM.c_recv();
 
 	//-reply with device data
-	my_send(server, my_info);
+	// my_send(server, my_info);
+	COMM.c_send(my_info);
 
 
 	//-continuously read a line from standard input and send to server
 	string send_line;
+	string recv_line;
 /*
 	while (getline(cin,send_line)) {
 		//-write the data to the server
@@ -288,11 +302,16 @@ int main(int argc, char* argv[]){
 			// string str_Balance = itoa(ME.Balance);
 			// send_line = myID + "  " + str_N + "  balance:  " + str_Balance;
 			
-			my_send(server, send_line);
+			// my_send(server, send_line);
+			COMM.c_send(send_line);
 			
 			//-recieve acknowledgement
-			my_recv(server, buf, buflen);
-			cout << send_line << endl << buf << endl;
+			// my_recv(server, buf, buflen);
+			recv_line = COMM.c_recv();
+			
+			// cout << send_line << endl << buf << endl;
+			cout << " <<-- [" << send_line << "]" << endl;
+			cout << "-->>  [" << recv_line << "]" << endl;
 		
 		}
 		// cout.width(4);
@@ -302,7 +321,10 @@ int main(int argc, char* argv[]){
 		if(N>1450){ break; }  //-prevent infinite loop, just in case
 	}
 	send_line = "exit";
-	my_send(server, send_line);
+	// my_send(server, send_line);
+	COMM.c_send(send_line);
+	
+	
 	// cout << DELIM << endl;
 	// cout << "exited loop; N = " << N << endl;
 	// cout << DELIM << endl;
@@ -313,7 +335,7 @@ int main(int argc, char* argv[]){
 	//-  bookkeeping
 
 	//-Close socket
-	if(server_is_open){ close(server); }
+	COMM.c_close();
 	
 	
 	cerr << "happy exit" << endl << "hit enter to exit" << endl;

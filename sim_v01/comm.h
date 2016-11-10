@@ -27,7 +27,13 @@ using namespace std;
 class comm{
 public:
 	comm();
-	~comm(){ delete buf; }
+	~comm(){
+		delete buf;
+		c_close();
+	}
+	
+	//-close socket connection
+	void c_close(){ if(server_is_open){ close(server); } }
 	
 	//-establish connection
 	bool c_connect();
