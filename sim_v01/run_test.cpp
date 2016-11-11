@@ -73,6 +73,7 @@ int checkpoint(int timeA, int timeB) {
 int main(int argc, char* argv[]){
 	
 	srand(time(NULL));
+	
 	//-----------------------------------------
 	//-  Initialize, parse command line
 	
@@ -90,43 +91,37 @@ int main(int argc, char* argv[]){
 	if(appl_type == "CC"){
 		my_info = "CarCharger; dev" + myID;
 		Device_arg = "carcharger";
-		// setLOAD = 6.6;
 	}else if(appl_type == "HV"){
 		my_info = "HVAC; dev" + myID;
 		Device_arg = "hvac";
-		// setLOAD = 0.25;
 	}else if(appl_type == "PP"){
 		my_info = "PoolPump; dev" + myID;
 		Device_arg = "poolpump";
-		// setLOAD = 0.4;
 	}else if(appl_type == "WH"){
 		my_info = "WaterHeater; dev" + myID;
 		Device_arg = "waterheater";
-		// setLOAD = 3.0;
 	}else{
 		cerr << "Error, appliance type [" << appl_type << "] not recognized" << endl;
 		my_info = "CarCharger; dev" + myID;
 		Device_arg = "carcharger";
 	}
-	
 	cout << endl;
 	
-	// appliance ME(setLOAD);
 	appliance ME(appl_type);
 	
 	
 	//-----------------------------------------
 	//-  integrate Device class
 	
-	cout << "----creating device----------------------" << endl;
+	cout << "----creating device-----------------------" << endl;
 	Device device(Device_arg.c_str());
 	cout << device.power << "  " << device.failed_bids << endl;
-	cout << "----^^ should NOT be an empty line ^^----" << endl;
+	cout << "----^^ should NOT be an empty line ^^-----" << endl;
 	
 	
 	//-----------------------------------------
 	//-  connect to simulation server
-
+	
 	comm COMM;
 	if(COMM.c_connect()){
 		cout << "-=-=-=-=--=-=-=-=-| Connection established |-=-=--=-=-" << endl;
@@ -136,20 +131,11 @@ int main(int argc, char* argv[]){
 	}
 	
 	//-----------------------------------------
-	//-  generate list of input files
-	
-	// ME.open_file(input_file);
-	
-	// ME.add_datafile(input_file);
-	
-	// ME.add_datafile(input_file2);
-	// ME.add_datafile(input_file3);
-	// ME.add_datafile(input_file4);
+	//-  select an input file
 	
 	ME.random_file();
 	
-	
-	
+
 	//-----------------------------------------
 	//-  Read input, dump output
 	
@@ -166,13 +152,14 @@ int main(int argc, char* argv[]){
 	
 	stringstream ss;
 	int N = 0;
+	int i = 0;
 	int connected_devices = 1;
 	//-simulate passing of time;
 	//---each time it calls next_line() another 'minute' has passed
 	while(ME.next_line()){
 		N++;
 		
-		//-while testing, pring checkpoint every 120m
+		//-while testing, print checkpoint every 120m
 		if(N%120 == 0){
 			
 			cout << "------ - - | " << N << " | - - - - -  - - - - - - -------------------------" << endl;
@@ -183,6 +170,7 @@ int main(int argc, char* argv[]){
 			ss << N << ";" << myID << ";" << ME.Balance;
 			send_line = ss.str();
 			COMM.c_send(send_line);
+			
 			//-reset balance (testing)
 			ME.Balance = 0;
 			

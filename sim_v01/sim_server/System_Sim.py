@@ -213,6 +213,16 @@ def my_send(sock, ID, M):
 	return
 
 
+def bid_to_device(A, msg):
+	'''send a single bid to a device'''
+	return
+
+
+def bid_from_device(A, msg):
+	'''recieve a device's bid'''
+	return
+
+
 def tunnel(A, msg):
 	'''recieve msg from A, save info to database, send msg to all other connections'''
 	return
@@ -271,11 +281,9 @@ while RUN_SIM_SIMPLE:
 		my_send(D.connection, D.ID, "--acknowledged--")
 		
 		if tmpLine.lower() == "exit" : break_flag = True
-		# print("[" + tmpLine + "]")
 	
 	if break_flag : break
 	
-	# print("saved data #{}".format(minutes))
 	print(" ----------  saved data #{}  ---------------- ".format(minutes))
 	
 	#-respond with number of connected devices
@@ -288,28 +296,6 @@ while RUN_SIM_SIMPLE:
 	#--> should modify RUN_SIM_SIMPLE somewhere to prevent infinite loop...
 	if minutes > SIM_LENGTH : break
 	time.sleep(1)
-
-
-#---section not currently used
-minutes = 0
-N = 0
-while RUN_SIM:
-	N += 1
-	# T = time.time()
-	T = N
-	tmp_S = Snapshot(T)
-	#-retrieve data from Devices
-	for D in Devices:
-		tmp_S.add_data(D.ID, D.getData())
-		#--> send data to each other Device
-	#-save data
-	history[T] = tmp_S
-	minutes += 1
-	print("saved data #{}".format(minutes))
-	
-	#--> should modify RUN_SIM somewhere to prevent infinite loop...
-	if minutes > SIM_LENGTH : break
-	# time.sleep(6)
 
 #=========================================
 
@@ -324,7 +310,7 @@ for S in history:
 print("--------------------------------------------------")
 
 
-time.sleep(2)
+time.sleep(1)
 # any_key = input("enter any key to exit")  #-python3
 any_key = raw_input("enter any key to exit\n")  #-python2
 
