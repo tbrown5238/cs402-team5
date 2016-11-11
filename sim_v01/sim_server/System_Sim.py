@@ -72,7 +72,7 @@ class Device():
 		'''
 		Run during constructor to retrieve device information
 		'''
-		M = "getInfo"
+		M = "getInfo\n"
 		print(">> getInfo:send")
 		self.connection.send(M.encode())  #socket_send
 		print("<< getInfo:recieveMessage")
@@ -108,6 +108,9 @@ class Device():
 			message = "---EXCEPTION---"
 		message = message.rstrip("\n")
 		self.last_msg = message
+	
+		print("  >> {}-[{}]".format(self.ID, message))
+	
 		return message
 		
 	def getData(self):
@@ -172,7 +175,7 @@ def waitConnection():
 	'''
 	# TIMEOUT = 65.0
 	try:
-		print("..listening..", end=" ")
+		print("..listening.. @ {}.{}".format(host, port), end=" ")
 		LISTENER.settimeout(TIMEOUT)
 		LISTENER.listen(5)
 		print(" .. ..")
@@ -190,14 +193,14 @@ def waitConnection():
 	return c
 
 
-def my_send(sock, M):
+def my_send(sock, ID, M):
 	'''
 	wrapper for socket's send function
 	
 	Currently just prints message before appending EOL
 	Can be expanded to check syntax, etc
 	'''
-	print("<<< [{}]".format(M))
+	print(" <<  {}-[{}]".format(ID, M))
 	
 	if M == "":
 		print("--< (sending empty message...)")
@@ -259,18 +262,30 @@ N = 0
 break_flag = False
 while RUN_SIM_SIMPLE:
 	N += 1
+	minutes += 1
 	#-retrieve data from Devices
+	print("|----------------------------------------------------------------------|")
 	for D in Devices:
 		tmpLine = D.getLine()
 		history[N] = tmpLine
-		my_send(D.connection, "--acknowledged--")
+		my_send(D.connection, D.ID, "--acknowledged--")
 		
 		if tmpLine.lower() == "exit" : break_flag = True
 		# print("[" + tmpLine + "]")
-	minutes += 1
-	print("saved data #{}".format(minutes))
-	#--> should modify RUN_SIM_SIMPLE somewhere to prevent infinite loop...
+	
 	if break_flag : break
+	
+	# print("saved data #{}".format(minutes))
+	print(" ----------  saved data #{}  ---------------- ".format(minutes))
+	
+	#-respond with number of connected devices
+	for D in Devices:
+		# my_send(D.connection, D.ID, str(len(Devices)))
+		my_send(D.connection, D.ID, str(minutes))
+	
+	print("\\______________________________________________________________________/")
+	
+	#--> should modify RUN_SIM_SIMPLE somewhere to prevent infinite loop...
 	if minutes > SIM_LENGTH : break
 	time.sleep(1)
 
@@ -313,7 +328,7 @@ time.sleep(2)
 # any_key = input("enter any key to exit")  #-python3
 any_key = raw_input("enter any key to exit\n")  #-python2
 
-print("you chose the [{}] 'key'".format(any_key))
+# print("you chose the [{}] 'key'".format(any_key))
 
 ## end program
 

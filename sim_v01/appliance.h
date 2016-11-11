@@ -27,10 +27,11 @@ enum a_state { ON, OFF, STANDBY, OVERRIDE };
 class appliance{
 public:
 	//-constructors
-	appliance() { initialize(300); }  //-provide default setting
-	appliance(double init_LOAD) { initialize(init_LOAD); }
+	appliance(string type);
 	~appliance(){ if(infile.is_open()){ infile.close(); } }
-	void initialize(double init_LOAD);
+	
+	appliance(double init_LOAD) { initialize(init_LOAD); }   //-obsolete
+	void initialize(double init_LOAD);   //-obsolete
 
 	//-input files
 	int add_datafile(string fname);
@@ -84,6 +85,17 @@ public:
 	vector <string> datafiles;
 	
 	vector <time_entry> history;
+	
+	//--input files
+	vector <string> CC_filelist;
+	vector <string> HV_filelist;
+	vector <string> PP_filelist;
+	vector <string> WH_filelist;
+	int num_CC_files;
+	int num_HV_files;
+	int num_PP_files;
+	int num_WH_files;
+
 };
 
 

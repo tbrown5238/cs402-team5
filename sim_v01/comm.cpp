@@ -22,8 +22,8 @@ using namespace std;
 //-constructor
 comm::comm(){
 	//-initialize basic metadata
-    port = 10000;
     host = "localhost";
+    port = 10000;
     
     //-use DNS to get IP address
 	hostEntry = gethostbyname(host.c_str());
@@ -55,6 +55,7 @@ comm::comm(){
 //-establish connection
 bool comm::c_connect(){
 	//-connect to server
+	cout << "..connecting @" << host << "." << port << endl;
 	if (connect(server,(const struct sockaddr *)&server_addr,sizeof(server_addr)) < 0) {
 		perror("connect");
 		exit(-1);  //? return false, handle exit in main?
@@ -69,7 +70,8 @@ bool comm::c_connect(){
 
 //-basic send
 int comm::c_send(string MSG) {
-	cout << "-- sending: [" << MSG << "]" << endl;
+	// cout << "-- sending: [" << MSG << "]" << endl;
+	cout << " <<   [" << MSG << "]" << endl;
 	send(server, MSG.c_str(), MSG.length(), 0);
 	return(1);
 }
@@ -81,6 +83,7 @@ string comm::c_recv() {
 	// return(string(buf));
 	string R = string(buf);
 	R.erase(R.end()-1);
+	cout << "   >> [" << R << "]" << endl;
 	return(R);
 }
 

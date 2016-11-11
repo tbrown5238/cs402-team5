@@ -16,14 +16,13 @@
 #include <fstream>
 #include <sstream>
 
+#include "bidding.h"
 
 using namespace std;
 
 
 //=========================================
 //==  comm
-
-
 class comm{
 public:
 	comm();
@@ -32,11 +31,11 @@ public:
 		c_close();
 	}
 	
-	//-close socket connection
-	void c_close(){ if(server_is_open){ close(server); } }
-	
 	//-establish connection
 	bool c_connect();
+	
+	//-close socket connection
+	void c_close(){ if(server_is_open){ close(server); } }
 
 	//-basic send/recieve
 	int c_send(string MSG);
