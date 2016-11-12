@@ -1,4 +1,5 @@
 #include "bidding.h"
+#include "comm.h"
 
 using namespace std;
 
@@ -83,35 +84,57 @@ desperation += failed_bids*0.1;   //will make more complicated using last time o
 
 }
 
-void Device::bidding(){
+void Device::bidding(comm info, int n, int ID){        //needs to know comm object, number of devices, own ID
 
   struct Bidders{
-    string address;
+    int address;
     double bid;
-    double power;
+//    double power;
 
   };
 
-  //vector<Bidders> bidders;
-  
+  vector<Bidders> all_bids;
   double first_bid, second_bid, third_bid;
+
   first_bid = get_bid(1);
-  //send your bid and receive bids from other devices
-  //put all bids in a vector starting with your own
-  vector<double> all_bids;
-  all_bids.push_back(first_bid);
-  //all_bids.push_back(all other bids);
   
 /*
-  if(first_bid == 0)
-    send your bid and receive bids from other devices
-    second_bid = 0;
-    send your bid and receive bids from other devices
-    third_bid = 0;
-    send your bid and receive bids from other devices
+  if(first_bid == 0.0){
+    
+    info.send_bid(ID, first_bid);
+    for(int i = 0; i < n; i++){
+      all_bids.push_back(info.get_bid());
+    }
+    
+    second_bid = 0.0;
+    
+    info.send_bid(ID, second_bid);
+    for(int i=0;i<n;i++){
+      all_bids.push_back(info.get_bid());
+    }
+
+    third_bid = 0.0;
+    
+    info.send_bid(ID, third_bid);
+    for(int i = 0; i < n; i++){
+      all_bids.push_back(info.get_bid());
+    }
+
+//calculate the winner
   
-  }else if(first_bid != 0 && all other devices bids == 0){
-    you win the slot and ALL other bidding is stopped for the minute and subtract credits
+  }else if(first_bid != 0){              //and all other devices are zero
+
+    int sum = 0;
+    
+    for(int i=0;i<n:i++){
+      sum += all_bids[i].bid;
+    }
+
+    if(sum == first_bid){
+      you win the slot and ALL other bidding is stopped for the minute and subtract credits
+    device.credits -= first_bid;
+    device.desperation = 0.0;
+    }  
 
   }else if(first_bid != 0 && other bids != 0){
     determine who has the highest bid 
