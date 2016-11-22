@@ -1,4 +1,5 @@
 #include "bidding.h"
+#include "comm.h"
 
 using namespace std;
 
@@ -83,77 +84,138 @@ desperation += failed_bids*0.1;   //will make more complicated using last time o
 
 }
 
-void Device::bidding(){
+void Device::bidding(comm info, int n, int ID){        //needs to know comm object, number of devices, own ID
 
   struct Bidders{
-    string address;
+    int address;
     double bid;
-    double power;
+//    double power;
 
   };
 
-  //vector<Bidders> bidders;
-  
-  double first_bid, second_bid, third_bid;
-  first_bid = get_bid(1);
-  //send your bid and receive bids from other devices
-  //put all bids in a vector starting with your own
-  vector<double> all_bids;
-  all_bids.push_back(first_bid);
-  //all_bids.push_back(all other bids);
-  
-/*
-  if(first_bid == 0)
-    send your bid and receive bids from other devices
-    second_bid = 0;
-    send your bid and receive bids from other devices
-    third_bid = 0;
-    send your bid and receive bids from other devices
-  
-  }else if(first_bid != 0 && all other devices bids == 0){
-    you win the slot and ALL other bidding is stopped for the minute and subtract credits
+  double max_bid;
+  int max_bidder;
 
-  }else if(first_bid != 0 && other bids != 0){
-    determine who has the highest bid 
+  vector<Bidders> all_bids;
+  double first_bid, second_bid, third_bid;
+
+  first_bid = get_bid(1);
+  
+
+  if(first_bid == 0.0){
     
-    if(first_bid > all other bids){
-      second_bid = first bid;
+    info.send_bid(ID, first_bid);
+    for(int i = 0; i < n; i++){
+      all_bids.push_back(info.get_bid());
+    }
     
-    }else if(first bid < other bids){
-      second_bid = get_bid(2)
+    second_bid = 0.0;
+    
+    info.send_bid(ID, second_bid);
+    for(int i=0;i<n;i++){
+      all_bids.push_back(info.get_bid());
     }
 
-    //send your bid and receive bids from other devices
-    //put all bids in a vector starting with your own
-    all_bids.clear(); 
-    all_bids.push_back(second_bid);
-    all_bids.push_back(all other bids);
+    third_bid = 0.0;
+    
+    info.send_bid(ID, third_bid);
+    for(int i = 0; i < n; i++){
+      all_bids.push_back(info.get_bid());
+    }
 
-    if(second_bid > all other bids){
+//calculate the winner
+  
+  }else if(first_bid != 0){              //and all other devices are zero
+
+    info.send_bid(ID, first_bid);
+    for(int i = 0; i < n; i++){
+      all_bids.push_back(info.get_bid());
+    }    
+
+    double sum = 0.0;
+    
+    for(int i=0; i<n; i++){
+      sum += all_bids[i].bid;
+    }
+
+    if(sum == first_bid){
+//you win the slot send all your bids then subtract credits and reset desperation
+      second_bid = first_bid;
+      info.send_bid(ID, second_bid);
+      
+      third_bid = second_bid;
+      info.send_bid(ID, third_bid);
+
+      credits -= third_bid;
+      desperation = 0.0;
+    
+    }else if(first_bid < sum){
+//determine who has the highest bid 
+      for(int i=0; i<n; i++){
+        max_bid = 0.0;
+        if(all_bids[i].bid > max_bid){
+          max_bid = all_bids[i].bid;
+          max_bidder = i;
+        }
+      } 
+    
+      if(first_bid == max_bid){
+        second_bid = first_bid;
+
+      }else if(first_bid < max_bid){
+        second_bid = get_bid(2);
+      }
+    }
+
+//send your bid and receive bids from other devices
+//put all bids in a vector starting with your own
+    
+    all_bids.clear();
+    info.send_bid(ID, second_bid);
+    for(int i = 0; i < n; i++){
+      all_bids.push_back(info.get_bid());
+    }
+
+    for(int i=0; i<n; i++){
+      max_bid = 0.0;
+      if(all_bids[i].bid > max_bid){
+        max_bid = all_bids[i].bid;
+        max_bidder = i;
+      }
+    }
+
+    if(second_bid == max_bid){
       third_bid = second_bid;
     
-    }else if(second_bid < other bids){
-      third_bid = get_bid(3)
+    }else if(second_bid < max_bid){
+      third_bid = get_bid(3);
     }
     
-    //send your bid and receive bids from other devices
-    //put all bids in a vector starting with your own
+//send your bid and receive bids from other devices
+//put all bids in a vector starting with your own
     all_bids.clear(); 
-    all_bids.push_back(third_bid);
-    all_bids.push_back(all other bids);
-
-    if(third_bid > all other bids){
-      you win the time slot
-
-    }else if(third < other bids){
-      ask device to shed load if already on
-      you lose and you update your failed bid counter
-      device.failed_bids += 1.0;
+    info.send_bid(ID, third_bid);
+    for(int i = 0; i < n; i++){
+      all_bids.push_back(info.get_bid());
     }
 
-  }
+    for(int i=0; i<n; i++){
+      max_bid = 0.0;
+      if(all_bids[i].bid > max_bid){
+        max_bid = all_bids[i].bid;
+        max_bidder = i;
+      }
+    }
 
-*/
+    if(third_bid == max_bid){
+//      you win the time slot
+
+    }else if(third_bid < max_bid){
+//    ask device to shed load if already on
+//      you lose and you update your failed bid counter
+      failed_bids += 1.0;
+    }
+  }
 }
 
 struct Time {
