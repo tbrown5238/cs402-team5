@@ -186,6 +186,22 @@ int main(int argc, char* argv[]){
 			
 			//-get number of connected devices
 			connected_devices = stoi(COMM.c_recv());
+			COMM.c_send("acknowledged");
+			
+			
+			//-get current power usage from each other device
+			for(i=0;i<connected_devices;i++){
+				recv_line = COMM.c_recv();
+				COMM.c_send("acknowledged");
+				
+				
+				
+			}
+			
+			
+			//----BIDDING
+			
+			
 			
 			// cout << " <<-- [" << send_line << "]" << endl;
 			// cout << "-->>  [" << recv_line << "]" << endl;

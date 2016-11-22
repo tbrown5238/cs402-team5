@@ -29,6 +29,7 @@ from threading import Thread
 RUN_SIM_SIMPLE = True
 RUN_SIM = False
 SIM_LENGTH = 14  # number of "mintues" simulation will run before ending
+BIDDING_ROUNDS = 3
 
 #-table to lookup power rating
 device_table = {
@@ -40,7 +41,7 @@ device_table = {
 #--Network connection
 # host = "0.0.0.0"
 host = "localhost"
-port = 10000
+port = 10001
 LISTENER = socket.socket()
 LISTENER.bind((host, port))
 TIMEOUT = 65.0
@@ -67,6 +68,7 @@ class Device():
 		self.getInfo()
 		print("--I AM:\n {}  ({}) : {}".format(self.ID, self.type, self.power_rating))
 		self.last_msg = ""
+		self.current = 0
 		
 	def getInfo(self):
 		'''
@@ -90,6 +92,30 @@ class Device():
 		
 		return
 		
+	def got_it(self):
+		'''
+		recieve 'acknowledged' from device
+		'''
+		message = ""
+		try:
+			message = self.connection.recv(512).decode()
+			if not message:
+				self.is_connected = False
+				print("--empty recv--")
+				
+		except Exception as ex:
+			self.is_connected = False
+			self.connection.close()
+			template = "An exception of type [{0}] occured.\nArguments:\n  {1!r}"
+			ex_msg = template.format(type(ex).__name__, ex.args)
+			print("--><--"*7)
+			print(ex_msg)
+			print("=-><-="*7)
+			message = "---EXCEPTION---"
+		message = message.rstrip("\n")
+		
+		return message.find("acknowledged")
+		
 	def recieveMessage(self):
 		'''
 		Wrapper for socket.recv() for internal use (within class)
@@ -112,6 +138,8 @@ class Device():
 			message = "---EXCEPTION---"
 		message = message.rstrip("\n")
 		self.last_msg = message
+		tmp_list = message.split(";")
+		self.current = tmp_list[-1]
 	
 		print("  >> {}-[{}]".format(self.ID, message))
 	
@@ -274,12 +302,15 @@ print("--------------------------------------------------")
 #-----------------------------------------
 #-  Run simulation
 
+
+output = open("output.txt", "w")
 minutes = 0
 N = 0
 break_flag = False
 while RUN_SIM_SIMPLE:
 	N += 1
 	minutes += 1
+	#---------------------
 	#-retrieve data from Devices
 	print("|----------------------------------------------------------------------|")
 	for D in Devices:
@@ -293,17 +324,59 @@ while RUN_SIM_SIMPLE:
 	
 	print(" ----------  saved data #{}  ---------------- ".format(minutes))
 	
+	#-print table to file
+	print(minutes, file=output, end="")
+	for D in Devices:
+		print("\t{}".format(D.current), file=output, end="")
+	print("", file=output)  # endline
+	
+	#---------------------
 	#-respond with number of connected devices
 	for D in Devices:
 		my_send(D.connection, D.ID, str(len(Devices)))
+		ack = D.got_it()
+		print(ack)
 		# my_send(D.connection, D.ID, str(minutes))
+	#-..?send device metadata to each device??
+	#-....no, don't think the devices need to know all info for other devices
+	
+	
+	#---------------------
+	#-send ALL data to EACH device
+	for RECV in Devices:
+		for D in Devices:
+			
+			my_send(RECV.connection, RECV.ID, D.last_msg)
+			ack = RECV.got_it()
+			# my_send(D.connection, D.ID, str(minutes))
+	
+	
+	
+	'''   BIDDING
+	for i in range(BIDDING_ROUNDS):
+		#---------------------
+		#-collect FIRST bid
+		for D in Devices:
+			my_send(D.connection, D.ID, str(len(Devices)))
+			# my_send(D.connection, D.ID, str(minutes))
+		
+		
+		#---------------------
+		#-relay FIRST bid (send to each device)
+		for D in Devices:
+			my_send(D.connection, D.ID, str(len(Devices)))
+			# my_send(D.connection, D.ID, str(minutes))
+	'''
+	
+	
+	
 	
 	print("\\______________________________________________________________________/")
 	
 	#--> should modify RUN_SIM_SIMPLE somewhere to prevent infinite loop...
 	if minutes > SIM_LENGTH : break
 	time.sleep(1)
-
+output.close()
 #=========================================
 
 
