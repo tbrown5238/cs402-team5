@@ -58,12 +58,12 @@ history = {}      # historical data, indexed on timestamp
 
 
 class Device():
-	def __init__(self, connection):
+	def __init__(self, connection, next_ID):
 		self.connection = connection
 		self.is_connected = True
 		self.type = "undetermined"
 		self.power_rating = 0.5
-		self.ID = "dev00"
+		self.ID = next_ID
 		self.getInfo()
 		print("--I AM:\n {}  ({}) : {}".format(self.ID, self.type, self.power_rating))
 		self.last_msg = ""
@@ -80,10 +80,14 @@ class Device():
 		# info = infostring.split(str=";")
 		info = infostring.split(";")
 		self.type = info[0]
-		self.ID = info[1]
+		# self.ID = info[1]
 		self.type = self.type.strip()
 		self.power_rating = device_table.get(self.type, 0.5)
-		self.ID = self.ID.strip()
+		# self.ID = self.ID.strip()
+		
+		M = "{}\n".format(self.ID)
+		self.connection.send(M.encode())  #socket_send
+		
 		return
 		
 	def recieveMessage(self):
@@ -241,6 +245,7 @@ backup = 0
 -- convert Device to a threaded class
 
 '''
+next_ID = 1
 while len(Devices) < N_Appliances:
 	backup += 1
 	if backup > (N_Appliances*2): break
@@ -251,9 +256,11 @@ while len(Devices) < N_Appliances:
 		#-device never connected
 		continue
 		
-	newDevice = Device(conn_sock)
+	newDevice = Device(conn_sock, next_ID)
+	next_ID += 1
 	# newDevice.getInfo()
 	#--> check Device.ID for uniqueness
+	#--> nevermind, ID is now assigned by server
 	
 	Devices.append(newDevice)
 	
@@ -288,8 +295,8 @@ while RUN_SIM_SIMPLE:
 	
 	#-respond with number of connected devices
 	for D in Devices:
-		# my_send(D.connection, D.ID, str(len(Devices)))
-		my_send(D.connection, D.ID, str(minutes))
+		my_send(D.connection, D.ID, str(len(Devices)))
+		# my_send(D.connection, D.ID, str(minutes))
 	
 	print("\\______________________________________________________________________/")
 	

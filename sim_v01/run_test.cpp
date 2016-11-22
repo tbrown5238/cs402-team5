@@ -89,7 +89,8 @@ int main(int argc, char* argv[]){
 	string Device_arg;
 	
 	if(appl_type == "CC"){
-		my_info = "CarCharger; dev" + myID;
+		// my_info = "CarCharger; dev" + myID;
+		my_info = "CarCharger;";
 		Device_arg = "carcharger";
 	}else if(appl_type == "HV"){
 		my_info = "HVAC; dev" + myID;
@@ -145,6 +146,12 @@ int main(int argc, char* argv[]){
 
 	//-reply with device data
 	COMM.c_send(my_info);
+	
+	//-receive IDnumber
+	myID = COMM.c_recv();
+	// myID = stoi(response);
+	// cout << "I am string : [" << response << "]" << endl;
+	cout << "I am number : " << myID << endl;
 
 
 	string send_line;
