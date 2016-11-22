@@ -70,7 +70,6 @@ bool comm::c_connect(){
 
 //-basic send
 int comm::c_send(string MSG) {
-	// cout << "-- sending: [" << MSG << "]" << endl;
 	cout << " <<   [" << MSG << "]" << endl;
 	send(server, MSG.c_str(), MSG.length(), 0);
 	return(1);

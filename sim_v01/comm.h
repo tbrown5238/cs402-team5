@@ -35,7 +35,10 @@ public:
 	bool c_connect();
 	
 	//-close socket connection
-	void c_close(){ if(server_is_open){ close(server); } }
+	void c_close(){
+		if(server_is_open){ close(server); }
+		server_is_open = false;
+	}
 
 	//-basic send/recieve
 	int c_send(string MSG);
