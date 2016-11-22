@@ -7,6 +7,7 @@
 #include <cstring>
 #include <vector>
 #include <time.h>
+#include "comm.h"
 
 using namespace std;
 
@@ -30,7 +31,13 @@ class Device{
 	//-functions
 	double get_bid(int);
 	void set_desperation();
-	void bidding();
+	void bidding(comm, int, int);
 };
+
+struct Bidders{
+    int address;
+    double bid;
+
+  };
 
 #endif
