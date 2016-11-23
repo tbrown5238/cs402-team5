@@ -82,8 +82,8 @@ int appliance::open_file(string filename){
 	//---?? should this file be added to datafiles??
 	current_fname = filename;
 	//-verbose:
-	cout << DELIM << endl;
-	cout << "<>  opening: " << current_fname << endl;
+	cerr << DELIM << endl;
+	cerr << "<>  opening: " << current_fname << endl;
 	
 	infile.open(filename.c_str());
 	return(1);

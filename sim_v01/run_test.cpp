@@ -52,7 +52,7 @@ string DELIM = "------------------------------------------";
 //=========================================
 //==  program info, etc
 
-void print_usage(){  cout << "Usage: ./run_test [type] [id]" << endl;  }
+void print_usage(){  cout << "Usage: ./run_test [type] [id]\n\t--> [id] no longer used" << endl;  }
 
 //------------ end of program info etc ---------------------
 
@@ -77,12 +77,13 @@ int main(int argc, char* argv[]){
 	//-----------------------------------------
 	//-  Initialize, parse command line
 	
-	if(argc < 3){
+	if(argc < 2){
 		print_usage();
 		return(-1);
 	}
 	string appl_type = argv[1];
-	string myID = "0" + (string)argv[2];
+	// string myID = "0" + (string)argv[2];
+	string myID = "00";  //-no longer from commandline, assigned by server
 	string my_info;  //-string to send to sim_server to store as metadata
 	string input_file = "tmp_string";
 	double setLOAD;
@@ -166,10 +167,11 @@ int main(int argc, char* argv[]){
 	while(ME.next_line()){
 		N++;
 		
-		//-while testing, print checkpoint every 120m
-		if(N%120 == 0){
+		//-while testing, print checkpoint every 120m|3m
+		if(N%3 == 0){
 			
-			cout << "------ - - | " << N << " | - - - - -  - - - - - - -------------------------" << endl;
+			// cout << "------ - - | " << N << " | - - - - -  - - - - - - -------------------------" << endl;
+			
 			//-construct string from data and send to server
 			ss.clear ();
 			ss.str ("");
@@ -193,21 +195,17 @@ int main(int argc, char* argv[]){
 			for(i=0;i<connected_devices;i++){
 				recv_line = COMM.c_recv();
 				COMM.c_send("acknowledged");
-				
-				
-				
+
 			}
 			
 			
 			//----BIDDING
+			//.. goes here ...
 			
 			
+			// cout << " # connected: " << connected_devices << endl;
+			// cout << "\\______________________________________________________________________/" << endl << endl;
 			
-			// cout << " <<-- [" << send_line << "]" << endl;
-			// cout << "-->>  [" << recv_line << "]" << endl;
-			cout << " # connected: " << connected_devices << endl;
-			
-			cout << "\\______________________________________________________________________/" << endl << endl;
 		}
 		
 		if(N>1450){ break; }  //-prevent infinite loop, just in case
@@ -224,8 +222,20 @@ int main(int argc, char* argv[]){
 	COMM.c_close();
 	
 	
-	cerr << "happy exit" << endl << "hit enter to exit" << endl;
-	cin.ignore();
+	sleep(1);
+	cerr << "\n happy exit :)" << endl;
+	// sleep(1);
+	// cerr << " ... ... ... " << endl;
+	for(i=0;i<4;i++){
+		sleep(1);
+		cerr << " ...";
+	}
+	cerr << endl;
+	sleep(1);
+	
+	
+	// cerr << "happy exit" << endl << "hit enter to exit" << endl;
+	// cin.ignore();
 	
 	// return(1);
 	return(0);

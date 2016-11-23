@@ -28,7 +28,7 @@ from threading import Thread
 
 RUN_SIM_SIMPLE = True
 RUN_SIM = False
-SIM_LENGTH = 14  # number of "mintues" simulation will run before ending
+SIM_LENGTH = 480  # number of "mintues" simulation will run before ending
 BIDDING_ROUNDS = 3
 
 #-table to lookup power rating
@@ -66,7 +66,7 @@ class Device():
 		self.power_rating = 0.5
 		self.ID = next_ID
 		self.getInfo()
-		print("--I AM:\n {}  ({}) : {}".format(self.ID, self.type, self.power_rating))
+		print("--I AM:\n dev #{}  ({}) : {}".format(self.ID, self.type, self.power_rating))
 		self.last_msg = ""
 		self.current = 0
 		
@@ -126,6 +126,7 @@ class Device():
 			if not message:
 				self.is_connected = False
 				print("--empty recv--")
+				message = "exit"
 				
 		except Exception as ex:
 			self.is_connected = False
@@ -172,6 +173,8 @@ class Device():
 		'''
 		datastring = self.recieveMessage()
 		#--> should probably include some error checking here
+		if datastring.isspace():
+			datastring = "exit"
 		return datastring.strip()
 #------------ end of Device() class -----------------------
 
@@ -312,17 +315,20 @@ while RUN_SIM_SIMPLE:
 	minutes += 1
 	#---------------------
 	#-retrieve data from Devices
-	print("|----------------------------------------------------------------------|")
+	# print("|----------------------------------------------------------------------|")
 	for D in Devices:
 		tmpLine = D.getLine()
-		history[N] = tmpLine
 		my_send(D.connection, D.ID, "--acknowledged--")
 		
-		if tmpLine.lower() == "exit" : break_flag = True
+		# if (tmpLine.lower() == "exit") or (tmpLine.lower() == "exit"):
+		if (tmpLine.lower() == "exit"):
+			break_flag = True
+		else:
+			history[N] = tmpLine
 	
 	if break_flag : break
 	
-	print(" ----------  saved data #{}  ---------------- ".format(minutes))
+	# print(" ----------  saved data #{}  ---------------- ".format(minutes))
 	
 	#-print table to file
 	print(minutes, file=output, end="")
@@ -335,7 +341,7 @@ while RUN_SIM_SIMPLE:
 	for D in Devices:
 		my_send(D.connection, D.ID, str(len(Devices)))
 		ack = D.got_it()
-		print(ack)
+		# print(ack)
 		# my_send(D.connection, D.ID, str(minutes))
 	#-..?send device metadata to each device??
 	#-....no, don't think the devices need to know all info for other devices
@@ -371,11 +377,23 @@ while RUN_SIM_SIMPLE:
 	
 	
 	
-	print("\\______________________________________________________________________/")
+	# print("\\______________________________________________________________________/")
 	
 	#--> should modify RUN_SIM_SIMPLE somewhere to prevent infinite loop...
 	if minutes > SIM_LENGTH : break
-	time.sleep(1)
+	
+	
+	#---------------------
+	#-make sure things sync up
+	# for D in Devices:
+		# ack = D.got_it()
+		
+	# time.sleep(1)
+	
+	
+	
+	
+	
 output.close()
 #=========================================
 
@@ -389,10 +407,12 @@ for S in history:
 	
 print("--------------------------------------------------")
 
-
 time.sleep(1)
+print("  program complete.\n  ...preparing to exit...")
+time.sleep(1)
+
 # any_key = input("enter any key to exit")  #-python3
-any_key = raw_input("enter any key to exit\n")  #-python2
+# any_key = raw_input("enter any key to exit\n")  #-python2
 
 # print("you chose the [{}] 'key'".format(any_key))
 
