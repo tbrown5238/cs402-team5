@@ -58,12 +58,12 @@ history = {}      # historical data, indexed on timestamp
 
 
 class Device():
-	def __init__(self, connection):
+	def __init__(self, connection, next_ID):
 		self.connection = connection
 		self.is_connected = True
 		self.type = "undetermined"
 		self.power_rating = 0.5
-		self.ID = "dev00"
+		self.ID = next_ID
 		self.getInfo()
 		print("--I AM:\n {}  ({}) : {}".format(self.ID, self.type, self.power_rating))
 		self.last_msg = ""
@@ -80,10 +80,14 @@ class Device():
 		# info = infostring.split(str=";")
 		info = infostring.split(";")
 		self.type = info[0]
-		self.ID = info[1]
+		# self.ID = info[1]
 		self.type = self.type.strip()
 		self.power_rating = device_table.get(self.type, 0.5)
-		self.ID = self.ID.strip()
+		# self.ID = self.ID.strip()
+		
+		M = "{}\n".format(self.ID)
+		self.connection.send(M.encode())  #socket_send
+		
 		return
 		
 	def recieveMessage(self):
@@ -213,6 +217,16 @@ def my_send(sock, ID, M):
 	return
 
 
+def bid_to_device(A, msg):
+	'''send a single bid to a device'''
+	return
+
+
+def bid_from_device(A, msg):
+	'''recieve a device's bid'''
+	return
+
+
 def tunnel(A, msg):
 	'''recieve msg from A, save info to database, send msg to all other connections'''
 	return
@@ -231,6 +245,7 @@ backup = 0
 -- convert Device to a threaded class
 
 '''
+next_ID = 1
 while len(Devices) < N_Appliances:
 	backup += 1
 	if backup > (N_Appliances*2): break
@@ -241,9 +256,11 @@ while len(Devices) < N_Appliances:
 		#-device never connected
 		continue
 		
-	newDevice = Device(conn_sock)
+	newDevice = Device(conn_sock, next_ID)
+	next_ID += 1
 	# newDevice.getInfo()
 	#--> check Device.ID for uniqueness
+	#--> nevermind, ID is now assigned by server
 	
 	Devices.append(newDevice)
 	
@@ -271,45 +288,21 @@ while RUN_SIM_SIMPLE:
 		my_send(D.connection, D.ID, "--acknowledged--")
 		
 		if tmpLine.lower() == "exit" : break_flag = True
-		# print("[" + tmpLine + "]")
 	
 	if break_flag : break
 	
-	# print("saved data #{}".format(minutes))
 	print(" ----------  saved data #{}  ---------------- ".format(minutes))
 	
 	#-respond with number of connected devices
 	for D in Devices:
-		# my_send(D.connection, D.ID, str(len(Devices)))
-		my_send(D.connection, D.ID, str(minutes))
+		my_send(D.connection, D.ID, str(len(Devices)))
+		# my_send(D.connection, D.ID, str(minutes))
 	
 	print("\\______________________________________________________________________/")
 	
 	#--> should modify RUN_SIM_SIMPLE somewhere to prevent infinite loop...
 	if minutes > SIM_LENGTH : break
 	time.sleep(1)
-
-
-#---section not currently used
-minutes = 0
-N = 0
-while RUN_SIM:
-	N += 1
-	# T = time.time()
-	T = N
-	tmp_S = Snapshot(T)
-	#-retrieve data from Devices
-	for D in Devices:
-		tmp_S.add_data(D.ID, D.getData())
-		#--> send data to each other Device
-	#-save data
-	history[T] = tmp_S
-	minutes += 1
-	print("saved data #{}".format(minutes))
-	
-	#--> should modify RUN_SIM somewhere to prevent infinite loop...
-	if minutes > SIM_LENGTH : break
-	# time.sleep(6)
 
 #=========================================
 
@@ -324,7 +317,7 @@ for S in history:
 print("--------------------------------------------------")
 
 
-time.sleep(2)
+time.sleep(1)
 # any_key = input("enter any key to exit")  #-python3
 any_key = raw_input("enter any key to exit\n")  #-python2
 

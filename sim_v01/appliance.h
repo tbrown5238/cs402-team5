@@ -30,18 +30,14 @@ public:
 	appliance(string type);
 	~appliance(){ if(infile.is_open()){ infile.close(); } }
 	
-	appliance(double init_LOAD) { initialize(init_LOAD); }   //-obsolete
-	void initialize(double init_LOAD);   //-obsolete
-
 	//-input files
-	int add_datafile(string fname);
 	int open_file(string filename);
 	int open_file(int f_index);
 	int random_file();
 	
 	//-read files
 	int next_line();
-	int read_all();
+	int read_all();  //-was used for testing
 
 	
 	//-dump information (for testing)

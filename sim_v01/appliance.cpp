@@ -65,18 +65,6 @@ appliance::appliance(string type){
 		LOAD = 6.6;
 	}
 
-	// initialize(300);
-	Balance = 0;
-	prev_time = 0;
-	current_state = OFF;
-	avg_L = 0;
-	avg_N = 0;
-}
-
-
-void appliance::initialize(double init_LOAD){
-	//-moved all this directly into constructor with the file name lists
-	LOAD = init_LOAD;
 	Balance = 0;
 	prev_time = 0;
 	current_state = OFF;
@@ -89,21 +77,13 @@ void appliance::initialize(double init_LOAD){
 //-  input files
 
   /*
-add string to list of data (input) files  */
-int appliance::add_datafile(string fname){
-	// datafiles.push_back(fname);
-	//--this function is no longer used; all files are added/initilized in the constructor
-	return(1);
-}
-
-  /*
 open file by string  */
 int appliance::open_file(string filename){
 	//---?? should this file be added to datafiles??
 	current_fname = filename;
 	//-verbose:
 	cout << DELIM << endl;
-	cout << " -<>- opening: " << current_fname << endl;
+	cout << "<>  opening: " << current_fname << endl;
 	
 	infile.open(filename.c_str());
 	return(1);
