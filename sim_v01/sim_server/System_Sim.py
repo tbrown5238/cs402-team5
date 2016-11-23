@@ -22,13 +22,19 @@ import re
 import time
 from threading import Thread
 
+from numpy import arange,zeros
+import matplotlib.pyplot as plt
 
 #=========================================
 #====== Global Variables (settings) ======
 
 RUN_SIM_SIMPLE = True
 RUN_SIM = False
-SIM_LENGTH = 14  # number of "mintues" simulation will run before ending
+SIM_LENGTH = 1440  # number of "mintues" simulation will run before ending
+BIDDING_ROUNDS = 3
+
+xData = arange(1, SIM_LENGTH+1)  # set up x-axis for graph
+start_time = time.clock()
 
 #-table to lookup power rating
 device_table = {
@@ -40,14 +46,14 @@ device_table = {
 #--Network connection
 # host = "0.0.0.0"
 host = "localhost"
-port = 10000
+port = 10001
 LISTENER = socket.socket()
 LISTENER.bind((host, port))
 TIMEOUT = 65.0
 
 #--System Info
 Devices = []      # list of connected appliances
-N_Appliances = 2  # target number of appliances (hardcoded for simplicity right now)
+N_Appliances = 4  # target number of appliances (hardcoded for simplicity right now)
 history = {}      # historical data, indexed on timestamp
 
 #------------ end of global variables ---------------------
@@ -65,8 +71,10 @@ class Device():
 		self.power_rating = 0.5
 		self.ID = next_ID
 		self.getInfo()
-		print("--I AM:\n {}  ({}) : {}".format(self.ID, self.type, self.power_rating))
+		print("--I AM:\n dev #{}  ({}) : {}".format(self.ID, self.type, self.power_rating))
 		self.last_msg = ""
+		self.current = 0
+		self.yData = zeros(SIM_LENGTH)  # create empty data for graph
 		
 	def getInfo(self):
 		'''
@@ -90,9 +98,9 @@ class Device():
 		
 		return
 		
-	def recieveMessage(self):
+	def got_it(self):
 		'''
-		Wrapper for socket.recv() for internal use (within class)
+		recieve 'acknowledged' from device
 		'''
 		message = ""
 		try:
@@ -111,14 +119,42 @@ class Device():
 			print("=-><-="*7)
 			message = "---EXCEPTION---"
 		message = message.rstrip("\n")
+		
+		return message.find("acknowledged")
+		
+	def recieveMessage(self):
+		'''
+		Wrapper for socket.recv() for internal use (within class)
+		'''
+		message = ""
+		try:
+			message = self.connection.recv(512).decode()
+			if not message:
+				self.is_connected = False
+				print("--empty recv--")
+				message = "exit"
+				
+		except Exception as ex:
+			self.is_connected = False
+			self.connection.close()
+			template = "An exception of type [{0}] occured.\nArguments:\n  {1!r}"
+			ex_msg = template.format(type(ex).__name__, ex.args)
+			print("--><--"*7)
+			print(ex_msg)
+			print("=-><-="*7)
+			message = "---EXCEPTION---"
+		message = message.rstrip("\n")
 		self.last_msg = message
+		tmp_list = message.split(";")
+		self.current = tmp_list[-1]
+		# self.yData[M] = self.current
 	
 		print("  >> {}-[{}]".format(self.ID, message))
 	
 		return message
 		
 	def getData(self):
-		'''
+		'''  --!!--NOT USED--!!--
 		recieve message from Device,
 		return message as a string
 		'''
@@ -144,6 +180,9 @@ class Device():
 		'''
 		datastring = self.recieveMessage()
 		#--> should probably include some error checking here
+		if datastring.isspace():
+			datastring = "exit"
+			print("\n-----------------------\n---  getLine empty space!!!\n-----------------------\n")
 		return datastring.strip()
 #------------ end of Device() class -----------------------
 
@@ -274,36 +313,99 @@ print("--------------------------------------------------")
 #-----------------------------------------
 #-  Run simulation
 
+
+output = open("output.txt", "w")
 minutes = 0
 N = 0
 break_flag = False
 while RUN_SIM_SIMPLE:
 	N += 1
 	minutes += 1
+	#---------------------
 	#-retrieve data from Devices
-	print("|----------------------------------------------------------------------|")
+	# print("|----------------------------------------------------------------------|")
 	for D in Devices:
 		tmpLine = D.getLine()
-		history[N] = tmpLine
 		my_send(D.connection, D.ID, "--acknowledged--")
 		
-		if tmpLine.lower() == "exit" : break_flag = True
+		if N <= 1440:
+			D.yData[N-1] = D.current
+		
+		# if (tmpLine.lower() == "exit") or (tmpLine.lower() == "exit"):
+		if (tmpLine.lower() == "exit"):
+			break_flag = True
+		else:
+			history[N] = tmpLine
 	
 	if break_flag : break
 	
-	print(" ----------  saved data #{}  ---------------- ".format(minutes))
+	# print(" ----------  saved data #{}  ---------------- ".format(minutes))
 	
+	#-print table to file
+	print(minutes, file=output, end="")
+	for D in Devices:
+		print("\t{}".format(D.current), file=output, end="")
+	print("", file=output)  # endline
+	
+	#---------------------
 	#-respond with number of connected devices
 	for D in Devices:
 		my_send(D.connection, D.ID, str(len(Devices)))
+		ack = D.got_it()
+		# print(ack)
 		# my_send(D.connection, D.ID, str(minutes))
+	#-..?send device metadata to each device??
+	#-....no, don't think the devices need to know all info for other devices
 	
-	print("\\______________________________________________________________________/")
+	
+	#---------------------
+	#-send ALL data to EACH device
+	for RECV in Devices:
+		for D in Devices:
+			
+			my_send(RECV.connection, RECV.ID, D.last_msg)
+			ack = RECV.got_it()
+			# my_send(D.connection, D.ID, str(minutes))
+	
+	
+	
+	'''   BIDDING
+	for i in range(BIDDING_ROUNDS):
+		#---------------------
+		#-collect FIRST bid
+		for D in Devices:
+			my_send(D.connection, D.ID, str(len(Devices)))
+			# my_send(D.connection, D.ID, str(minutes))
+		
+		
+		#---------------------
+		#-relay FIRST bid (send to each device)
+		for D in Devices:
+			my_send(D.connection, D.ID, str(len(Devices)))
+			# my_send(D.connection, D.ID, str(minutes))
+	'''
+	
+	
+	
+	
+	# print("\\______________________________________________________________________/")
 	
 	#--> should modify RUN_SIM_SIMPLE somewhere to prevent infinite loop...
 	if minutes > SIM_LENGTH : break
-	time.sleep(1)
-
+	
+	
+	#---------------------
+	#-make sure things sync up
+	# for D in Devices:
+		# ack = D.got_it()
+		
+	# time.sleep(1)
+	
+	
+	
+	
+	
+output.close()
 #=========================================
 
 
@@ -311,15 +413,27 @@ while RUN_SIM_SIMPLE:
 #-  Print results
 
 print("--------------------------------------------------")
-for S in history:
-	print("[" + history[S] + "]")
+# for S in history:
+	# print("[" + history[S] + "]")
 	
-print("--------------------------------------------------")
+	
+fig, ax = plt.subplots()
+ax.stackplot(xData, Devices[0].yData, Devices[1].yData, Devices[2].yData, Devices[3].yData)
+plt.savefig('Smart_Appliances.png')
+# plt.show()
 
+# print("--------------------------------------------------")
 
 time.sleep(1)
+print("  program complete.\n  ...preparing to exit...")
+time.sleep(1)
+
+print("--------------------------------------------------")
+end_time = time.clock()
+
+print(" execution time: ", (end_time - start_time))
 # any_key = input("enter any key to exit")  #-python3
-any_key = raw_input("enter any key to exit\n")  #-python2
+# any_key = raw_input("enter any key to exit\n")  #-python2
 
 # print("you chose the [{}] 'key'".format(any_key))
 

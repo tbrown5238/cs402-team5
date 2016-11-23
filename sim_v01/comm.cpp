@@ -23,7 +23,7 @@ using namespace std;
 comm::comm(){
 	//-initialize basic metadata
     host = "localhost";
-    port = 10000;
+    port = 10001;
     
     //-use DNS to get IP address
 	hostEntry = gethostbyname(host.c_str());

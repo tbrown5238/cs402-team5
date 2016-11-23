@@ -8,10 +8,14 @@
 #-----------------------------------------
 
 # python sim_server/System_Sim.py > out_python.txt &
-python sim_server/System_Sim.py &
+# python sim_server/System_Sim.py &
+# sleep 1
 
+./run_test WH > /dev/null &
 sleep 1
-
-./run_test CC 1 > out_CC.txt &
-
-./run_test WH 2 > out_WH.txt &
+./run_test PP > /dev/null &
+sleep 1
+./run_test CC > /dev/null &
+sleep 1
+./run_test HV > /dev/null &
+sleep 1
