@@ -168,7 +168,7 @@ int main(int argc, char* argv[]){
 		N++;
 		
 		//-while testing, print checkpoint every 120m|3m
-		if(N%3 == 0){
+		if(N%1 == 0){
 			
 			// cout << "------ - - | " << N << " | - - - - -  - - - - - - -------------------------" << endl;
 			
@@ -208,7 +208,10 @@ int main(int argc, char* argv[]){
 			
 		}
 		
-		if(N>1450){ break; }  //-prevent infinite loop, just in case
+		if(N>1450){
+			cerr << "--!!-- capped out at 1450 --" << endl;
+			break;
+		}  //-prevent infinite loop, just in case
 	}
 	
 	send_line = "exit";

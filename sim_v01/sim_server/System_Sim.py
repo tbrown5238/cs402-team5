@@ -22,14 +22,19 @@ import re
 import time
 from threading import Thread
 
+from numpy import arange,zeros
+import matplotlib.pyplot as plt
 
 #=========================================
 #====== Global Variables (settings) ======
 
 RUN_SIM_SIMPLE = True
 RUN_SIM = False
-SIM_LENGTH = 480  # number of "mintues" simulation will run before ending
+SIM_LENGTH = 1440  # number of "mintues" simulation will run before ending
 BIDDING_ROUNDS = 3
+
+xData = arange(1, SIM_LENGTH+1)  # set up x-axis for graph
+start_time = time.clock()
 
 #-table to lookup power rating
 device_table = {
@@ -48,7 +53,7 @@ TIMEOUT = 65.0
 
 #--System Info
 Devices = []      # list of connected appliances
-N_Appliances = 2  # target number of appliances (hardcoded for simplicity right now)
+N_Appliances = 4  # target number of appliances (hardcoded for simplicity right now)
 history = {}      # historical data, indexed on timestamp
 
 #------------ end of global variables ---------------------
@@ -69,6 +74,7 @@ class Device():
 		print("--I AM:\n dev #{}  ({}) : {}".format(self.ID, self.type, self.power_rating))
 		self.last_msg = ""
 		self.current = 0
+		self.yData = zeros(SIM_LENGTH)  # create empty data for graph
 		
 	def getInfo(self):
 		'''
@@ -141,13 +147,14 @@ class Device():
 		self.last_msg = message
 		tmp_list = message.split(";")
 		self.current = tmp_list[-1]
+		# self.yData[M] = self.current
 	
 		print("  >> {}-[{}]".format(self.ID, message))
 	
 		return message
 		
 	def getData(self):
-		'''
+		'''  --!!--NOT USED--!!--
 		recieve message from Device,
 		return message as a string
 		'''
@@ -175,6 +182,7 @@ class Device():
 		#--> should probably include some error checking here
 		if datastring.isspace():
 			datastring = "exit"
+			print("\n-----------------------\n---  getLine empty space!!!\n-----------------------\n")
 		return datastring.strip()
 #------------ end of Device() class -----------------------
 
@@ -320,6 +328,9 @@ while RUN_SIM_SIMPLE:
 		tmpLine = D.getLine()
 		my_send(D.connection, D.ID, "--acknowledged--")
 		
+		if N <= 1440:
+			D.yData[N-1] = D.current
+		
 		# if (tmpLine.lower() == "exit") or (tmpLine.lower() == "exit"):
 		if (tmpLine.lower() == "exit"):
 			break_flag = True
@@ -402,15 +413,25 @@ output.close()
 #-  Print results
 
 print("--------------------------------------------------")
-for S in history:
-	print("[" + history[S] + "]")
+# for S in history:
+	# print("[" + history[S] + "]")
 	
-print("--------------------------------------------------")
+	
+fig, ax = plt.subplots()
+ax.stackplot(xData, Devices[0].yData, Devices[1].yData, Devices[2].yData, Devices[3].yData)
+plt.savefig('Smart_Appliances.png')
+# plt.show()
+
+# print("--------------------------------------------------")
 
 time.sleep(1)
 print("  program complete.\n  ...preparing to exit...")
 time.sleep(1)
 
+print("--------------------------------------------------")
+end_time = time.clock()
+
+print(" execution time: ", (end_time - start_time))
 # any_key = input("enter any key to exit")  #-python3
 # any_key = raw_input("enter any key to exit\n")  #-python2
 
