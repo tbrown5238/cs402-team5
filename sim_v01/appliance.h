@@ -19,16 +19,19 @@ using namespace std;
 extern string DELIM;
 
 enum a_state { ON, OFF, STANDBY, OVERRIDE };
-
+// ON  - appliance has consumed power in the past minute
+// OFF  - appliance has NOT consumed power in the past minute
+// STANDBY  - device has shut off appliance, aka "shed"
+// OVERRIDE  - manual override; customer has forced "on"
 
 //=========================================
 //==  Appliance
 
-class appliance{
+class Appliance{
 public:
 	//-constructors
-	appliance(string type);
-	~appliance(){ if(infile.is_open()){ infile.close(); } }
+	Appliance(string type);
+	~Appliance(){ if(infile.is_open()){ infile.close(); } }
 	
 	//-input files
 	int open_file(string filename);
@@ -38,10 +41,26 @@ public:
 	//-read files
 	int next_line();
 	int read_all();  //-was used for testing
+	
+	//-operation/communication
+	bool is_override(){    //-check for override
+		if(current_state == OVERRIDE){ return(true); }
+		else{ return(false); }
+	}
+	bool enter_standby();  //-attempt to enter standby state; reterns true on success
+	bool exit_standby();   //-lifts "standby" mode, re-enters "on" state
+
+	bool needs_to_run();   //-check state and determine if the appliance wants to spend energy
+	
+	double spent();       //-determine how much energy WAS spent in the last minute
+	
+	void to_spend();       //-determine how much energy WILL BE spent
+	// ^v duplicate?
+	double spend_energy(); //-determine how much energy was consumed in the previous minute
 
 	
 	//-dump information (for testing)
-	int dump_data(){
+	void dump_data(){
 		/*
 		print energy of each time_entry in history
 		*/
@@ -49,7 +68,7 @@ public:
 		for (i=0;i<history.size();i++){ cout << history[i].energy << endl; }
 	}
 
-	int dump_nonempty(){
+	void dump_nonempty(){
 		/*
 		print all lines with a non-zero load
 		--also calculates LOAD based on average of these values
@@ -70,6 +89,7 @@ public:
 	ifstream infile;
 	double LOAD;    //-power consumption of the appliance
 	double Balance; //-running total of energy that needs to be spent
+	double spend;   //-amount of energy to be consumed in the upcoming minute
 	
 	double avg_L;
 	int avg_N;

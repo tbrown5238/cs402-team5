@@ -28,7 +28,7 @@ extern string DELIM;
 
   /*
 constructor  */
-appliance::appliance(string type){
+Appliance::Appliance(string type){
 
 	//-----------------------------------------
 	//-  create list of possible input files
@@ -36,9 +36,14 @@ appliance::appliance(string type){
 	if(type == "CC"){
 		//-Car charger
 		datafiles.push_back("test_data/CC_set01.txt");
-		datafiles.push_back("test_data/CC_set02.txt");
-		datafiles.push_back("test_data/CC_set03.txt");
-		datafiles.push_back("test_data/CC_set04.txt");
+		// datafiles.push_back("test_data/CC_set02.txt");
+		// datafiles.push_back("test_data/CC_set03.txt");
+		// datafiles.push_back("test_data/CC_set04.txt");
+		
+		/*
+		datafiles.push_back("test_data/miniCC_set01a.txt");
+		datafiles.push_back("test_data/miniCC_set01b.txt");
+		// */
 		LOAD = 6.6;
 	}else if(type == "HV"){
 		//-HVAC
@@ -47,16 +52,16 @@ appliance::appliance(string type){
 	}else if(type == "PP"){
 		//-Pool pump
 		datafiles.push_back("test_data/PP_set01.txt");
-		datafiles.push_back("test_data/PP_set02.txt");
-		datafiles.push_back("test_data/PP_set03.txt");
-		datafiles.push_back("test_data/PP_set04.txt");
+		// datafiles.push_back("test_data/PP_set02.txt");
+		// datafiles.push_back("test_data/PP_set03.txt");
+		// datafiles.push_back("test_data/PP_set04.txt");
 		LOAD = 0.4;
 	}else if(type == "WH"){
 		//-Water heater
 		datafiles.push_back("test_data/WH_set01.txt");
-		datafiles.push_back("test_data/WH_set02.txt");
-		datafiles.push_back("test_data/WH_set03.txt");
-		datafiles.push_back("test_data/WH_set04.txt");
+		// datafiles.push_back("test_data/WH_set02.txt");
+		// datafiles.push_back("test_data/WH_set03.txt");
+		// datafiles.push_back("test_data/WH_set04.txt");
 		LOAD = 3.0;
 	}else{
 		cerr << "Error, appliance type [" << type << "] not recognized" << endl;
@@ -65,11 +70,14 @@ appliance::appliance(string type){
 		LOAD = 6.6;
 	}
 
-	Balance = 0;
-	prev_time = 0;
-	current_state = OFF;
+	Balance = 0.0;
+	spend = 0.0;
+	
 	avg_L = 0;
 	avg_N = 0;
+	
+	prev_time = 0;
+	current_state = OFF;
 }
 
 
@@ -78,7 +86,7 @@ appliance::appliance(string type){
 
   /*
 open file by string  */
-int appliance::open_file(string filename){
+int Appliance::open_file(string filename){
 	//---?? should this file be added to datafiles??
 	current_fname = filename;
 	//-verbose:
@@ -91,7 +99,7 @@ int appliance::open_file(string filename){
 
   /*
 open file by index  */
-int appliance::open_file(int f_index){
+int Appliance::open_file(int f_index){
 	//-if negative (invalid) argument, open random file instead
 	if(f_index < 0){
 		cerr << "-!!-Error: open_file(index) : cannot open negative index, opening random instead\n";
@@ -118,7 +126,7 @@ int appliance::open_file(int f_index){
 
   /*
 selects and opens file from list, chosen randomly  */
-int appliance::random_file(){
+int Appliance::random_file(){
 	int max = datafiles.size();
 	int i = 0;
 	i = rand()%max;
@@ -151,32 +159,46 @@ int appliance::random_file(){
 
   /*
 get next line, create time_entry, add to history  */
-int appliance::next_line(){
+int Appliance::next_line(){
 	if(!infile.is_open()){
 		cerr << "-!!-Error: file not open\n";
 		return(-1);
 	}
+	// else{ /*open next file*/ } //??
+	
 	string L;
 	bool is_valid = false;
 	getline(infile, L);
 
+	// do{
 	if (L.length() > 0){
 		time_entry new_entry(L);
 		is_valid = new_entry.is_valid;
-		if (new_entry.is_valid){ history.push_back(new_entry); }
+		if (new_entry.is_valid){
+			//-entry is valid, add to history
+			history.push_back(new_entry);
+			//-update Balance and spend variables
+			Balance += new_entry.energy;
+			to_spend();
+		}
 		else{ cout << "invalid. energy : " << new_entry.energy << endl; }
-		Balance += new_entry.energy;
+		// Balance += new_entry.energy;  //-moved outside loop; here Balance will update regardless of is_valid
 	}
 	else{
 		is_valid = false;
+		/*open next file*/
+		//?recursion? ... no, use do-while
 	}
+	// }while(!is_valid)
+	
+	//-returns true if a valid entry was found (if continuous, should always be true by this point)
 	return is_valid;
 }
 
 
   /*
 read all remaining lines from infile, print to screen for testing  */
-int appliance::read_all(){
+int Appliance::read_all(){
 	int flag = 2;
 	int N = 0;
 	while (flag > 1){
@@ -197,5 +219,116 @@ int appliance::read_all(){
 }
 
 
+//-----------------------------------------
+//-  operation/communication
+
+  /*
+check current state and energy balance to determine if appliance needs to run  */
+bool Appliance::needs_to_run(){
+	if(Balance > 0){
+		if(current_state == OFF){ current_state = ON; }
+		return(true);
+	}
+	else{
+		spend = 0.0;
+		current_state = OFF;
+		return(false);
+	}
+}
+
+
+  /*
+attempt to enter standby state; reterns true on success  */
+bool Appliance::enter_standby(){
+	if(is_override()){
+		cerr << "  [_!_STANDBY_!_]  " << endl;
+		return(false);
+	}
+	else{
+		current_state = STANDBY;
+		cerr << "  [STANDBY]  " << endl;
+		return(true);
+	}
+}
+
+
+  /*
+lifts "standby" mode, re-enters "on" state  */
+bool Appliance::exit_standby(){
+	if(Balance > 0){
+		current_state = ON;
+		cerr << "  [EXIT]  " << endl;
+		return(true);
+	}
+	else{
+		current_state = OFF;
+		cerr << "  [_!_EXIT_!_]  " << endl;
+		return(false);
+	}
+}
+
+
+  /*
+checks current state to determine if energy was spent in the previous minute  */
+double Appliance::spent(){
+	if((current_state == ON) || (current_state == OVERRIDE)){
+		//-current state was running, energy WAS spent
+		return spend;
+	}
+	else{
+		//-current_state = [OFF|STANDBY]
+		//-appliance was not running, energy WAS NOT spent
+		return(0.0);
+		// Balance -= spent;
+	}
+}
+
+
+  /*
+determine how much energy will be consumed if device is allowed to run
+does NOT modify Balance  */
+void Appliance::to_spend(){
+	if(Balance <= LOAD){
+		spend = Balance*1.0;  // make sure it's not an int --??necessary??
+		// Balance = 0.0;
+	}
+	else{
+		spend = LOAD*1.0;
+		// Balance -= spent;
+	}
+	return;
+}
+
+
+  /*
+modify Balance to reflect upcoming energy consumption
+DOES modify Balance  */
+double Appliance::spend_energy(){
+	//-Assumes spend has already been calculated
+	/*
+	... if spend has been calculated correctly, then it should just be:
+	Balance -= spend
+	because spend should never be greater than Balance
+	*/
+	if(current_state == STANDBY){
+		//-device has shut off appliance, do not spend energy
+		return(0.0);
+	}
+	if(current_state == OFF){
+		//-device has shut off appliance, do not spend energy
+		if(spend > 0){
+			cerr << "--!!-- oops, spend > 0 during OFF" << endl;
+		}
+		return(0.0);
+	}
+	if(Balance <= LOAD){
+		//- should mean that (Balance == spend)
+		Balance = 0.0;
+	}
+	else{
+		Balance -= spend;
+	}
+	return(spend);
+}
 
 //------------ end of appliance class ----------------------

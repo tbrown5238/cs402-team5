@@ -33,6 +33,9 @@ RUN_SIM = False
 SIM_LENGTH = 1440  # number of "mintues" simulation will run before ending
 BIDDING_ROUNDS = 3
 
+#-change variable to False if ssh
+DISPLAY = False
+
 xData = arange(1, SIM_LENGTH+1)  # set up x-axis for graph
 start_time = time.clock()
 
