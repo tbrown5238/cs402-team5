@@ -1,6 +1,6 @@
 #include <vector>
 #include <iostream>
-#include <cstdlib>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -44,17 +44,18 @@ void initialize_brain(){
 
 int choose_action(int state){         //decides which action to take
   vector<int> action_list;
-  double r1 = (rand() % 10)/10;
-  double r2 = (rand() % 10)/10;
+  
+  double r1 = (rand() % 10)/10.0;
+  double r2 = (rand() % 10)/10.0;
   int best_action;
 
-  
+// cout<<r1<<" "<<r2<<endl; 
   for(int j=0; j<2880; j++){          //find all actions
     if(environment[state][j] < 2){
       action_list.push_back(j);
     }
   }
-cout<<action_list[0]<<" "<<action_list[1]<<endl;
+//cout<<"("<<action_list[0]<<","<<action_list[1]<<") ";
   if(r1 < epsilon){                     //choose random action
     if(r2 < 0.5){
         return action_list[0];
@@ -64,7 +65,7 @@ cout<<action_list[0]<<" "<<action_list[1]<<endl;
   }else{                                //choose best action
     
     if(brain[state][action_list[0]] == brain[state][action_list[1]]){  //find which action has more value
-      if(r2 < 0.5){
+      if(r2 > 0.5){
         return action_list[0];
       }else{
         return action_list[1]; 
@@ -111,9 +112,9 @@ void print_32(){
 }
 
 int main(void){
-
+  srand(123);
   initialize_environment();
-  Episode(1);
+  Episode(0);
 //  print_32();
 }
 
