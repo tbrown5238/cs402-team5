@@ -1,4 +1,5 @@
 CC = g++
+# CFLAGS = -g -std=c++11 -Wall
 CFLAGS = -g -std=c++11
 
 DEPS = appliance.h bidding.h comm.h time_entry.h

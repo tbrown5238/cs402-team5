@@ -86,7 +86,7 @@ int main(int argc, char* argv[]){
 	string myID = "00";  //-no longer from commandline, assigned by server
 	string my_info;  //-string to send to sim_server to store as metadata
 	string input_file = "tmp_string";
-	double setLOAD;
+	// double setLOAD;
 	string Device_arg;
 	
 	if(appl_type == "CC"){
@@ -109,7 +109,7 @@ int main(int argc, char* argv[]){
 	}
 	cout << endl;
 	
-	appliance ME(appl_type);
+	Appliance ME(appl_type);
 	
 	
 	//-----------------------------------------
@@ -162,6 +162,8 @@ int main(int argc, char* argv[]){
 	int N = 0;
 	int i = 0;
 	int connected_devices = 1;
+	double energy_spent = 0.0;
+	
 	//-simulate passing of time;
 	//---each time it calls next_line() another 'minute' has passed
 	while(ME.next_line()){
@@ -175,13 +177,10 @@ int main(int argc, char* argv[]){
 			//-construct string from data and send to server
 			ss.clear ();
 			ss.str ("");
-			// ss << myID << "  " << N << "  balance:  " << ME.Balance;
-			ss << N << ";" << myID << ";" << ME.Balance;
+			ss << N << ";" << myID << ";" << ME.spent();
+			// ss << N << ";" << myID << ";" << energy_spent;
 			send_line = ss.str();
 			COMM.c_send(send_line);
-			
-			//-reset balance (testing)
-			ME.Balance = 0;
 			
 			//-recieve acknowledgement
 			recv_line = COMM.c_recv();
@@ -199,8 +198,35 @@ int main(int argc, char* argv[]){
 			}
 			
 			
-			//----BIDDING
+			//----BIDDING/MAKE DECISION
 			//.. goes here ...
+			if(ME.needs_to_run()){
+				//-make decision: Do I remain on, or turn off?
+				
+				
+				// /*
+				if((N >= 420) && (N < 600)){
+					//-testing: enter standby at 7am
+					if(ME.current_state != STANDBY){
+						cerr << "--" << N << endl;
+						ME.enter_standby();
+					}
+				}
+				if(ME.current_state == STANDBY){
+					//-testing: exit standby at 10am
+					if(N >= 600){
+						cerr << "++" << myID << "++" << N << endl;
+						ME.exit_standby();
+					}
+				}
+				// */
+					
+				//---(testing)--> remain on
+				// ME.Balance = 0;
+				energy_spent = ME.spend_energy();
+				
+				
+			}
 			
 			
 			// cout << " # connected: " << connected_devices << endl;
