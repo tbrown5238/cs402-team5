@@ -30,13 +30,13 @@ import matplotlib.pyplot as plt
 
 RUN_SIM_SIMPLE = True
 RUN_SIM = False
-SIM_LENGTH = 1440  # number of "mintues" simulation will run before ending
+SIM_LENGTH = 1440*15  # number of "mintues" simulation will run before ending
 BIDDING_ROUNDS = 3
 
 #-change variable to False if ssh
 DISPLAY = False
 
-xData = arange(1, SIM_LENGTH+1)  # set up x-axis for graph
+xData = arange(1, 1440+1)  # set up x-axis for graph
 start_time = time.clock()
 
 #-table to lookup power rating
@@ -77,7 +77,7 @@ class Device():
 		print("--I AM:\n dev #{}  ({}) : {}".format(self.ID, self.type, self.power_rating))
 		self.last_msg = ""
 		self.current = 0
-		self.yData = zeros(SIM_LENGTH)  # create empty data for graph
+		self.yData = zeros(1440)  # create empty data for graph
 		
 	def getInfo(self):
 		'''
@@ -149,7 +149,10 @@ class Device():
 		message = message.rstrip("\n")
 		self.last_msg = message
 		tmp_list = message.split(";")
-		self.current = tmp_list[-1]
+		if(len(tmp_list)>2):
+			self.current = tmp_list[-1]
+		else:
+			print("--><--current NOT set--><--")
 		# self.yData[M] = self.current
 	
 		print("  >> {}-[{}]".format(self.ID, message))
@@ -317,9 +320,10 @@ print("--------------------------------------------------")
 #-  Run simulation
 
 
-output = open("output.txt", "w")
+output = open("output_000.txt", "w")
 minutes = 0
 N = 0
+N_days = 0
 break_flag = False
 while RUN_SIM_SIMPLE:
 	N += 1
@@ -329,10 +333,17 @@ while RUN_SIM_SIMPLE:
 	# print("|----------------------------------------------------------------------|")
 	for D in Devices:
 		tmpLine = D.getLine()
-		my_send(D.connection, D.ID, "--acknowledged--")
+		if break_flag:
+			my_send(D.connection, D.ID, "--EXIT--")
+		else:
+			my_send(D.connection, D.ID, "--acknowledged--")
 		
-		if N <= 1440:
-			D.yData[N-1] = D.current
+		# if N <= 1440:
+			# i = N%1440
+			# D.yData[i] = D.current
+		i = N%1440
+		# D.yData[i] = D.current
+		D.yData[i] = float(D.current)
 		
 		# if (tmpLine.lower() == "exit") or (tmpLine.lower() == "exit"):
 		if (tmpLine.lower() == "exit"):
@@ -389,12 +400,24 @@ while RUN_SIM_SIMPLE:
 	'''
 	
 	
+	if(N%1440 == 0):
+		#-end of day
+		N_days += 1
+		
+		#-create graph for the day
+		fig, ax = plt.subplots()
+		ax.stackplot(xData, Devices[0].yData, Devices[1].yData, Devices[2].yData, Devices[3].yData)
+		plt.savefig('Smart_day{:03}.png'.format(N_days))
+		
+		#-open new file for new day's text output
+		output.close()
+		output = open("output_{:03}.txt".format(N_days), "w")
 	
 	
 	# print("\\______________________________________________________________________/")
 	
 	#--> should modify RUN_SIM_SIMPLE somewhere to prevent infinite loop...
-	if minutes > SIM_LENGTH : break
+	if minutes > SIM_LENGTH : break_flag = True
 	
 	
 	#---------------------
@@ -420,9 +443,10 @@ print("--------------------------------------------------")
 	# print("[" + history[S] + "]")
 	
 	
-fig, ax = plt.subplots()
-ax.stackplot(xData, Devices[0].yData, Devices[1].yData, Devices[2].yData, Devices[3].yData)
-plt.savefig('Smart_Appliances.png')
+# fig, ax = plt.subplots()
+# ax.stackplot(xData, Devices[0].yData, Devices[1].yData, Devices[2].yData, Devices[3].yData)
+# plt.savefig('Smart_day{}.png')
+
 # plt.show()
 
 # print("--------------------------------------------------")

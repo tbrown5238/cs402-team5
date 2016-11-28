@@ -72,6 +72,7 @@ int checkpoint(int timeA, int timeB) {
 //==  begin "MAIN"
 int main(int argc, char* argv[]){
 	
+	int time_limit = 1440*15;
 	srand(time(NULL));
 	
 	//-----------------------------------------
@@ -132,10 +133,7 @@ int main(int argc, char* argv[]){
 		exit(-1);
 	}
 	
-	//-----------------------------------------
-	//-  select an input file
-	
-	ME.random_file();
+	//-------
 	
 
 	//-----------------------------------------
@@ -153,6 +151,12 @@ int main(int argc, char* argv[]){
 	// myID = stoi(response);
 	// cout << "I am string : [" << response << "]" << endl;
 	cout << "I am number : " << myID << endl;
+	ME.ID = myID;
+
+	
+	//-----------------------------------------
+	//-  select an input file
+	ME.random_file();
 
 
 	string send_line;
@@ -185,6 +189,11 @@ int main(int argc, char* argv[]){
 			//-recieve acknowledgement
 			recv_line = COMM.c_recv();
 			
+			if(recv_line == "--EXIT--"){
+				cerr << "--!!--EXIT--!!--" << endl;
+				break;
+			}
+			
 			//-get number of connected devices
 			connected_devices = stoi(COMM.c_recv());
 			COMM.c_send("acknowledged");
@@ -200,7 +209,7 @@ int main(int argc, char* argv[]){
 			
 			//----BIDDING/MAKE DECISION
 			//.. goes here ...
-			if(ME.needs_to_run()){
+			if(ME.needs_to_run){
 				//-make decision: Do I remain on, or turn off?
 				
 				
@@ -234,8 +243,8 @@ int main(int argc, char* argv[]){
 			
 		}
 		
-		if(N>1450){
-			cerr << "--!!-- capped out at 1450 --" << endl;
+		if(N>time_limit){
+			cerr << "--!!-- capped out at [" << time_limit << "] --" << endl;
 			break;
 		}  //-prevent infinite loop, just in case
 	}
