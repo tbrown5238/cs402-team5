@@ -1,7 +1,11 @@
 #include <vector>
+#include <string>
 #include <iostream>
 #include <stdlib.h>
 #include <iomanip>
+#include <iostream>
+#include <fstream>
+#include <cstdlib>
 
 using namespace std;
 
@@ -36,9 +40,23 @@ void initialize_environment(){
 }
 
 void initialize_brain(){
-  for(int i=0; i<2880; i++){
-    for(int j=0; j<2880; j++){
-      brain[i][j] = 0;
+  string str;
+  double num;  
+  ifstream file;
+  file.open("memory.txt");
+  if(file.good()){ 
+    for(int i=0; i<2880; i++){
+      for(int j=0; j<2880; j++){
+        getline(file,str);
+        string::size_type sz;        
+        brain[i][j] = atof(str.c_str());
+      }
+    }
+  }else{
+    for(int i=0; i<2880; i++){
+      for(int j=0; j<2880; j++){
+        brain[i][j] = 0;
+      }
     }
   }
 }
@@ -110,6 +128,19 @@ int Episode(int state){
 
 }
 
+void save_brain(){
+  ofstream file("memory.txt");
+  if(file.is_open()){
+    for(int i=0; i<2880; i++){
+      for(int j=0; j<2880; j++){
+        file<<brain[i][j];
+      }
+      file<<"\n";
+    }
+    file.close();
+  }
+}
+
 void print_32(){
   for(int i=0; i<32; i++){
     for(int j=0; j<32; j++){
@@ -122,9 +153,13 @@ void print_32(){
 int main(void){
   srand(123);
   initialize_brain();
+print_32();
   initialize_environment();
+for(int i=0; i<100; i++){  
   Episode(0);
-
-//  print_32();
+}
+  save_brain();
+print_32();
+  
 }
 
