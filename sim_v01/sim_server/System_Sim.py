@@ -28,10 +28,14 @@ import matplotlib.pyplot as plt
 #=========================================
 #====== Global Variables (settings) ======
 
-RUN_SIM_SIMPLE = True
-RUN_SIM = False
-SIM_LENGTH = 1440*15  # number of "mintues" simulation will run before ending
+RUN_SIM = True
+
+MAX_DAYS = 2
+SIM_LENGTH = 1440*MAX_DAYS  # number of "mintues" simulation will run before ending
 BIDDING_ROUNDS = 3
+
+SHOW_ALL_COMM = False
+# SHOW_ALL_COMM = True
 
 #-change variable to False if ssh
 DISPLAY = False
@@ -155,7 +159,7 @@ class Device():
 			print("--><--current NOT set--><--")
 		# self.yData[M] = self.current
 	
-		print("  >> {}-[{}]".format(self.ID, message))
+		if(SHOW_ALL_COMM) : print("  >> {}-[{}]".format(self.ID, message))
 	
 		return message
 		
@@ -249,7 +253,7 @@ def my_send(sock, ID, M):
 	Currently just prints message before appending EOL
 	Can be expanded to check syntax, etc
 	'''
-	print(" <<  {}-[{}]".format(ID, M))
+	if(SHOW_ALL_COMM) : print(" <<  {}-[{}]".format(ID, M))
 	
 	if M == "":
 		print("--< (sending empty message...)")
@@ -313,23 +317,26 @@ while len(Devices) < N_Appliances:
 	#--> send new connection info to currently connected appliances
 	#-->  ... actually, just let Device connect to Sim, and let Sim handle all communications
 
-print("--------------------------------------------------")
+print("--------------------------------------------------|")
 
 
 #-----------------------------------------
 #-  Run simulation
 
 
-output = open("output_000.txt", "w")
-minutes = 0
-N = 0
-N_days = 0
+output = open("output_001.txt", "w")
+N = 0  #-Total count
+N_min = 0 #-time of day
+N_day = 1 #-day number
 break_flag = False
-while RUN_SIM_SIMPLE:
+while RUN_SIM:
 	N += 1
-	minutes += 1
+	# N_min += 1
+	# N_min = N_min%1440
+	N_min = N%1440
 	#---------------------
 	#-retrieve data from Devices
+	print("|----|{:8}|----[{:2}],[{:04}]-----------------------------------------------|".format(N, N_day, N_min))
 	# print("|----------------------------------------------------------------------|")
 	for D in Devices:
 		tmpLine = D.getLine()
@@ -338,25 +345,22 @@ while RUN_SIM_SIMPLE:
 		else:
 			my_send(D.connection, D.ID, "--acknowledged--")
 		
-		# if N <= 1440:
-			# i = N%1440
-			# D.yData[i] = D.current
 		i = N%1440
 		# D.yData[i] = D.current
-		D.yData[i] = float(D.current)
 		
 		# if (tmpLine.lower() == "exit") or (tmpLine.lower() == "exit"):
 		if (tmpLine.lower() == "exit"):
+			print("===| : exit (from Devices[{}]}".format(D.ID))
 			break_flag = True
 		else:
+			D.yData[i] = float(D.current)
 			history[N] = tmpLine
 	
+	#-check if any device sent an "exit" message
 	if break_flag : break
 	
-	# print(" ----------  saved data #{}  ---------------- ".format(minutes))
-	
 	#-print table to file
-	print(minutes, file=output, end="")
+	print(N_min, file=output, end="")
 	for D in Devices:
 		print("\t{}".format(D.current), file=output, end="")
 	print("", file=output)  # endline
@@ -367,7 +371,7 @@ while RUN_SIM_SIMPLE:
 		my_send(D.connection, D.ID, str(len(Devices)))
 		ack = D.got_it()
 		# print(ack)
-		# my_send(D.connection, D.ID, str(minutes))
+		# my_send(D.connection, D.ID, str(N_min))
 	#-..?send device metadata to each device??
 	#-....no, don't think the devices need to know all info for other devices
 	
@@ -376,11 +380,9 @@ while RUN_SIM_SIMPLE:
 	#-send ALL data to EACH device
 	for RECV in Devices:
 		for D in Devices:
-			
 			my_send(RECV.connection, RECV.ID, D.last_msg)
 			ack = RECV.got_it()
-			# my_send(D.connection, D.ID, str(minutes))
-	
+			# my_send(D.connection, D.ID, str(N_min))
 	
 	
 	'''   BIDDING
@@ -389,46 +391,41 @@ while RUN_SIM_SIMPLE:
 		#-collect FIRST bid
 		for D in Devices:
 			my_send(D.connection, D.ID, str(len(Devices)))
-			# my_send(D.connection, D.ID, str(minutes))
+			# my_send(D.connection, D.ID, str(N_min))
 		
 		
 		#---------------------
 		#-relay FIRST bid (send to each device)
 		for D in Devices:
 			my_send(D.connection, D.ID, str(len(Devices)))
-			# my_send(D.connection, D.ID, str(minutes))
+			# my_send(D.connection, D.ID, str(N_min))
 	'''
 	
 	
-	if(N%1440 == 0):
-		#-end of day
-		N_days += 1
-		
+	#-end of day
+	if(N_min == 0):
 		#-create graph for the day
 		fig, ax = plt.subplots()
 		ax.stackplot(xData, Devices[0].yData, Devices[1].yData, Devices[2].yData, Devices[3].yData)
-		plt.savefig('Smart_day{:03}.png'.format(N_days))
+		plt.savefig('Smart_day{:03}.png'.format(N_day))
 		
-		#-open new file for new day's text output
+		#-next day
+		N_day += 1
+		
+		#-reset graph for next day
+		for D in Devices:
+			D.yData = zeros(1440)
+		
+		#-open new file for next day's text output
 		output.close()
-		output = open("output_{:03}.txt".format(N_days), "w")
+		output = open("output_{:03}.txt".format(N_day), "w")
 	
 	
-	# print("\\______________________________________________________________________/")
-	
-	#--> should modify RUN_SIM_SIMPLE somewhere to prevent infinite loop...
-	if minutes > SIM_LENGTH : break_flag = True
-	
-	
-	#---------------------
-	#-make sure things sync up
-	# for D in Devices:
-		# ack = D.got_it()
-		
-	# time.sleep(1)
-	
-	
-	
+	#--> ?? should modify RUN_SIM somewhere to prevent infinite loop... ??
+	# if N_min > SIM_LENGTH : break_flag = True
+	if N > SIM_LENGTH :
+		print("===| : {} > {}".format(N, SIM_LENGTH))
+		break_flag = True
 	
 	
 output.close()
