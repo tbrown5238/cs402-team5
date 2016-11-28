@@ -47,16 +47,17 @@ public:
 		if(current_state == OVERRIDE){ return(true); }
 		else{ return(false); }
 	}
-	bool enter_standby();  //-attempt to enter standby state; reterns true on success
-	bool exit_standby();   //-lifts "standby" mode, re-enters "on" state
+	bool enter_standby(); //-attempt to enter standby state; reterns true on success
+	bool exit_standby();  //-lifts "standby" mode, re-enters "on" state
 
-	bool needs_to_run();   //-check state and determine if the appliance wants to spend energy
+	void update_state();  //-updates current_state based on Balance and current_state
+						  //-check state and determine if the appliance wants to spend energy
 	
 	double spent();       //-determine how much energy WAS spent in the last minute
 	
-	void to_spend();       //-determine how much energy WILL BE spent
+	void to_spend();      //-determine how much energy WILL BE spent
 	// ^v duplicate?
-	double spend_energy(); //-determine how much energy was consumed in the previous minute
+	double spend_energy();//-determine how much energy was consumed in the previous minute
 
 	
 	//-dump information (for testing)
@@ -90,9 +91,13 @@ public:
 	double LOAD;    //-power consumption of the appliance
 	double Balance; //-running total of energy that needs to be spent
 	double spend;   //-amount of energy to be consumed in the upcoming minute
+	bool needs_to_run; //-used to check if appliance needs to run
 	
 	double avg_L;
 	int avg_N;
+	
+	string ID;
+	int minutes_standby;
 	
 	int prev_time;
 	a_state current_state;
