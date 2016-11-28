@@ -1,14 +1,15 @@
 #include <vector>
 #include <iostream>
 #include <stdlib.h>
+#include <iomanip>
 
 using namespace std;
 
 double gamma = 0.5;       //gamma parameter to determine how important future goals are
-double epsilon = 0.2;     //encourages exploration
+double epsilon = 0.7;     //encourages exploration
 
 vector<vector<int> > environment(2880, vector<int>(2880));
-vector<vector<int> > brain(2880, vector<int>(2880));
+vector<vector<double> > brain(2880, vector<double>(2880));
 
 void initialize_environment(){
 
@@ -78,15 +79,22 @@ int choose_action(int state){         //decides which action to take
   } 
 }
 
-int max_next(int next_state){
+double max_next(int next_state){
   vector<int> next_action_list;
-  int max_value =1;
+  double max_value = 0.0;
   for(int j=0; j<2880; j++){          //find all actions
     if(environment[next_state][j] < 2){
       next_action_list.push_back(j);
     }
   }
- // max_value = max(environment[next_state][next_action_list[0]] + gamma*max_next(next_action_list[0]), environment[next_state][next_action_list[1]] + gamma*max_next(next_action_list[1]));
+
+  if(next_action_list.size() > 0){  
+    if(max_value < brain[next_state][next_action_list[0]])
+      max_value = brain[next_state][next_action_list[0]];
+    if(max_value < brain[next_state][next_action_list[1]])
+      max_value = brain[next_state][next_action_list[1]];
+  }
+
   return max_value;
 }
 
@@ -94,7 +102,7 @@ int Episode(int state){
   int action;  
   do{
     action = choose_action(state);
-    brain[state][action] = environment[state][action] + gamma*max_next(action);
+    brain[state][action] = environment[state][action] + gamma*max_next(action); //reward + future reward
 //cout<<state<<" ";
   state=action;
   }while(state<2878);
@@ -105,7 +113,7 @@ int Episode(int state){
 void print_32(){
   for(int i=0; i<32; i++){
     for(int j=0; j<32; j++){
-      cout<<environment[i][j]<<" ";
+      cout<<setprecision(2)<<brain[i][j]<<" ";
     }
     cout<<endl;
   }
@@ -113,8 +121,10 @@ void print_32(){
 
 int main(void){
   srand(123);
+  initialize_brain();
   initialize_environment();
   Episode(0);
+
 //  print_32();
 }
 
