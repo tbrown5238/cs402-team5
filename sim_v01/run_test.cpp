@@ -112,11 +112,11 @@ int checkpoint(int timeA, int timeB) {
 //=========================================
 //==  begin "MAIN"
 int main(int argc, char* argv[]){
-	int MAX_DAYS = 7;
+	int MAX_DAYS = 10;
 	int SIM_LENGTH = 1440*MAX_DAYS;
 	srand(time(NULL));
 	
-	double TIER = 7.0; //-try to keep avg power consumption under this
+	double TIER = 5.0; //-try to keep avg power consumption under this
 	
 	//-----------------------------------------
 	//-  Initialize, parse command line
@@ -219,6 +219,7 @@ int main(int argc, char* argv[]){
 	double energy_spent_total = 0.0;
 	double energy_spent_dev = 0.0;
 	double energy_spent = 0.0;
+	double diff = 0.0;  // difference between spent and TIER
 	History H;
 	int decision = 0;
 	
@@ -227,7 +228,7 @@ int main(int argc, char* argv[]){
 	cerr << "beginning read" << endl;
 	while(ME.next_line()){
 		N++;
-		cerr << "--<"+(string)myID+">---- - - | " << N << " | - - - - -  - - - - - - -------------------------" << endl;
+		// cerr << "--<"+(string)myID+">---- - - | " << N << " | - - - - -  - - - - - - -------------------------" << endl;
 		N_min = N%1440;
 		
 		
@@ -290,22 +291,47 @@ int main(int argc, char* argv[]){
 
 				energy_spent_total += energy_spent_dev;
 			}
-			cout << "==[" << energy_spent_total << "]==" << endl;
+			// cout << "==[" << energy_spent_total << "]==" << endl;
 			H.update(energy_spent_total);
+			
+			
 			
 			//----BIDDING/MAKE DECISION
 			//.. goes here ...
+			
+			decision = Q.get_decision(H.average(), TIER, ME.minutes_standby);
+			decision %= 2;
+			// cerr << "^^ " << decision << " ^^" << endl;
+			diff = TIER - H.average();
 			if(ME.needs_to_run){
 				//-make decision: Do I remain on, or turn off?
-				
 				// decision = Q.get_decision(energy_spent_total.average(), TIER, ME.minutes_standby);
 				
-				// Q.update_power(energy_spent_total.average(), TIER);
-				// Q.update_standby(ME.minutes_standby);
-				
-				// Q.update_reward(ME.minutes_standby);
-				
 				// /*
+				if(H.average() < (TIER*.75)){
+					//-if average is less than 75% maximum, don't standby
+					ME.exit_standby();
+					//continue;
+				}
+				// */
+				else if(!decision){
+				// if(!decision){
+					//-testing: enter standby at 7am
+					if(ME.current_state != STANDBY){
+						cout << "^^ " << decision << " ^^[" << N_min << "]--" << myID << "--" << endl;
+						// cerr << "[[--" << myID << "--]]" << endl;
+						ME.enter_standby();
+					}
+				}
+				else if(decision){
+					//-testing: exit standby at 10am
+					if(ME.current_state == STANDBY){
+						cout << "^^ " << decision << " ^^[" << N_min << "]++" << myID << "++" << endl;
+						// cerr << "[[++" << myID << "++]]" << N << endl;
+						ME.exit_standby();
+					}
+				}
+				/*
 				if((N_min >= 420) && (N_min < 600)){
 					//-testing: enter standby at 7am
 					if(ME.current_state != STANDBY){
@@ -332,6 +358,8 @@ int main(int argc, char* argv[]){
 		
 		if(N_min==0){
 			//-End of day
+			cerr << "day#" << N_day << ",  file: " << ME.current_fname << endl;
+			cout << "day#" << N_day << ",  file: " << ME.current_fname << endl;
 			N_day++;
 		}
 		

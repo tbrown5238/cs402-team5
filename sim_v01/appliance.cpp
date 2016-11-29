@@ -35,16 +35,17 @@ Appliance::Appliance(string type){
 	//-    based on appliance type
 	if(type == "CC"){
 		//-Car charger
-		datafiles.push_back("test_data/CC_set01.txt");
 		datafiles.push_back("test_data/CC_set02.txt");
-		// datafiles.push_back("test_data/CC_set03.txt");
-		// datafiles.push_back("test_data/CC_set04.txt");
+		datafiles.push_back("test_data/CC_set03.txt");
 		
-		/*
-		datafiles.push_back("test_data/miniCC_set01a.txt");
-		datafiles.push_back("test_data/miniCC_set01b.txt");
-		// */
-		LOAD = 6.6;
+		datafiles.push_back("test_data/CC_set01_half.txt"); //-bad data?
+		datafiles.push_back("test_data/CC_set04_half.txt"); //-bad data?
+		LOAD = 3.5;  //-sets 2 and 3
+		
+		// datafiles.push_back("test_data/CC_set01_dbl.txt"); //-bad data?
+		// datafiles.push_back("test_data/CC_set04_dbl.txt"); //-bad data?
+		// LOAD = 6.6;  //-sets 1 and 4
+		
 	}else if(type == "HV"){
 		//-HVAC
 		datafiles.push_back("test_data/HVAC_set01.txt");
@@ -54,21 +55,22 @@ Appliance::Appliance(string type){
 		//-Pool pump
 		datafiles.push_back("test_data/PP_set01.txt");
 		datafiles.push_back("test_data/PP_set02.txt");
-		// datafiles.push_back("test_data/PP_set03.txt");
-		// datafiles.push_back("test_data/PP_set04.txt");
+		datafiles.push_back("test_data/PP_set03.txt");
+		datafiles.push_back("test_data/PP_set04.txt");
 		LOAD = 0.4;
 	}else if(type == "WH"){
 		//-Water heater
 		datafiles.push_back("test_data/WH_set01.txt");
 		datafiles.push_back("test_data/WH_set02.txt");
-		// datafiles.push_back("test_data/WH_set03.txt");
-		// datafiles.push_back("test_data/WH_set04.txt");
+		datafiles.push_back("test_data/WH_set03.txt");
+		datafiles.push_back("test_data/WH_set04.txt");
 		LOAD = 3.0;
 	}else{
 		cerr << "Error, appliance type [" << type << "] not recognized" << endl;
 		//-default to car charger to avoid unexpected exit
 		datafiles.push_back("test_data/CC_set01.txt");
-		LOAD = 6.6;
+		// LOAD = 6.6;
+		LOAD = 3.5;
 	}
 
 	Balance = 0.0;
@@ -275,29 +277,29 @@ void Appliance::update_state(){
 attempt to enter standby state; reterns true on success  */
 bool Appliance::enter_standby(){
 	if(is_override()){
-		cerr << "  [_!_STANDBY_!_]  " << endl;
+		// cerr << "  [_!_STANDBY_!_]  " << endl;
 		return(false);
 	}
 	else{
 		current_state = STANDBY;
-		cerr << "  [STANDBY]  " << endl;
+		// cerr << "  [STANDBY]  " << endl;
 		return(true);
 	}
 }
 
 
   /*
-lifts "standby" mode, re-enters "on" state  */
+lifts "standby" mode, re-enters "on" state (or "off" if there's no balance  */
 bool Appliance::exit_standby(){
 	if(Balance > 0){
 		current_state = ON;
-		cerr << "  [EXIT][" << minutes_standby << "]  " << endl;
+		// cerr << "  [EXIT][" << minutes_standby << "]  " << endl;
 		minutes_standby = 0;
 		return(true);
 	}
 	else{
 		current_state = OFF;
-		cerr << "  [_!_EXIT_!_]  " << endl;
+		// cerr << "  [_!_EXIT_!_]  " << endl;
 		return(false);
 	}
 }

@@ -148,4 +148,3 @@ void Q_learning::print_32(){
     cout<<endl;
   }
 }
-

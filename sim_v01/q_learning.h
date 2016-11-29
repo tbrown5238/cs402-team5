@@ -12,7 +12,8 @@ class Q_learning{
 public:
 	Q_learning(){
 		gamma = 0.5;
-		epsilon = 0.7;
+		// epsilon = 0.7;
+		epsilon = 0.4;
 		epsilon_min = 0.25;
 		state = 0;		
 
@@ -55,6 +56,5 @@ protected:
 	vector<vector<double> > brain;
 
 };
-
 
 #endif
