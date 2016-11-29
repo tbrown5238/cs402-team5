@@ -28,7 +28,7 @@
 #include "time_entry.h"
 #include "appliance.h"
 // #include "bidding.h"
-// #include "q_learning.h"
+#include "q_learning.h"
 
 #include "comm.h"
 
@@ -124,6 +124,7 @@ int main(int argc, char* argv[]){
 	// cout << device.power << "  " << device.failed_bids << endl;
 	// cout << "----^^ should NOT be an empty line ^^-----" << endl;
 	
+	Q_learning Q;
 	
 	//-----------------------------------------
 	//-  connect to simulation server
@@ -170,6 +171,7 @@ int main(int argc, char* argv[]){
 	int N_day = 1; // day number
 	int connected_devices = 1;
 	double energy_spent = 0.0;
+	vector<double> energy_history(15);
 	
 	//-simulate passing of time;
 	//---each time it calls next_line() another 'minute' has passed
@@ -207,6 +209,8 @@ int main(int argc, char* argv[]){
 			for(i=0;i<connected_devices;i++){
 				recv_line = COMM.c_recv();
 				COMM.c_send("acknowledged");
+				
+				//-parse data, update total power usage
 
 			}
 			
@@ -216,6 +220,9 @@ int main(int argc, char* argv[]){
 			if(ME.needs_to_run){
 				//-make decision: Do I remain on, or turn off?
 				
+				// Q.get_decision()
+				// Q.update_power(double double)
+				// Q.update_standby(int)
 				
 				// /*
 				if((N_min >= 420) && (N_min < 600)){
@@ -238,7 +245,8 @@ int main(int argc, char* argv[]){
 				// ME.Balance = 0;
 				
 				//-update Balance
-				energy_spent = ME.spend_energy();
+				// energy_spent = ME.spend_energy();
+				ME.spend_energy();
 			}
 		}
 		
