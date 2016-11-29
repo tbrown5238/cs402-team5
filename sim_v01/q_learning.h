@@ -8,15 +8,6 @@
 
 using namespace std;
 
-<<<<<<< HEAD
-void initialize_environment();
-void initialize_brain();
-int choose_action(int);
-double max_next(int);
-int Episode(int);
-void save_brain();
-void print_32();
-=======
 class Q_learning{
 public:
 	Q_learning(){
@@ -63,4 +54,3 @@ protected:
 
 
 #endif
->>>>>>> refs/remotes/origin/Travis
