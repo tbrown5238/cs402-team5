@@ -22,6 +22,8 @@ using namespace std;
 //-constructor
 comm::comm(){
 	//-initialize basic metadata
+	// host = "10.131.98.44";  //-laptop (sim)
+	// host = "10.131.148.200";//-Pi (appliances)
     host = "localhost";
     port = 10001;
     

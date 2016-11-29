@@ -56,8 +56,8 @@ public:
 	double spent();       //-determine how much energy WAS spent in the last minute
 	
 	void to_spend();      //-determine how much energy WILL BE spent
-	// ^v duplicate?
-	double spend_energy();//-determine how much energy was consumed in the previous minute
+	
+	double spend_energy();//-modify Balance to reflect upcoming energy consumption
 
 	
 	//-dump information (for testing)

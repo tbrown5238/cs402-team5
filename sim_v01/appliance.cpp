@@ -100,7 +100,13 @@ int Appliance::open_file(string filename){
 	//-verbose:
 	// cerr << DELIM << endl;
 	// cerr << "<" << ID << ">  opening: " << current_fname << endl;
-	cerr << (DELIM+"\n<"+ID+">  opening: "+current_fname) << endl;
+	
+	if(current_fname.size()<24){
+		cerr << (DELIM+"\n<"+ID+">  opening  "+current_fname+"   <"+ID+">\n"+DELIM) << endl;
+	}
+	else{
+		cerr << (DELIM+"\n<"+ID+"> opening  "+current_fname+"  <"+ID+">\n"+DELIM) << endl;
+	}
 	
 	infile.open(filename.c_str());
 	if(!infile.is_open()){
