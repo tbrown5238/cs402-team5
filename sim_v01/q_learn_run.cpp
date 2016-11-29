@@ -13,10 +13,16 @@ int main(void){
 	Q_learning Q;
 	// Q.initialize_environment();
 	// Q.initialize_brain();
-	
-	Q.Episode(0);
-
 	Q.print_32();
+	
+	for(int i=0; i<100; i++){  
+		Q.Episode(0);
+	}
+
+	Q.save_brain();
+	Q.print_32();
+	
+	
 	return{0};
 }
 

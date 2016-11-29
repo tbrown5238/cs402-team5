@@ -23,6 +23,8 @@ import time
 from threading import Thread
 
 from numpy import arange,zeros
+import matplotlib
+matplotlib.use('Agg')   # set environment var $DISPLAY to avoid errors when running via ssh
 import matplotlib.pyplot as plt
 
 #=========================================
@@ -51,11 +53,14 @@ device_table = {
 	"WaterHeater":3.0}
 
 #--Network connection
-# host = "0.0.0.0"
+# host = "10.131.98.44" #-laptop (sim)
+# host = "10.131.148.200" #-Pi (appliances)
 host = "localhost"
 port = 10001
 LISTENER = socket.socket()
+print("listener @ host: {}".format(host))
 LISTENER.bind((host, port))
+# LISTENER.bind(("", port))  #-bind empty host for server socket
 TIMEOUT = 65.0
 
 #--System Info

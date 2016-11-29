@@ -1,7 +1,11 @@
 #include <vector>
+#include <string>
 #include <iostream>
 #include <stdlib.h>
 #include <iomanip>
+#include <iostream>
+#include <fstream>
+#include <cstdlib>
 
 #include "q_learning.h"
 
@@ -32,9 +36,23 @@ void Q_learning::initialize_environment(){
 }
 
 void Q_learning::initialize_brain(){
-  for(int i=0; i<2880; i++){
-    for(int j=0; j<2880; j++){
-      brain[i][j] = 0;
+  string str;
+  double num;  
+  ifstream file;
+  file.open("memory.txt");
+  if(file.good()){ 
+    for(int i=0; i<2880; i++){
+      for(int j=0; j<2880; j++){
+        getline(file,str);
+        string::size_type sz;        
+        brain[i][j] = atof(str.c_str());
+      }
+    }
+  }else{
+    for(int i=0; i<2880; i++){
+      for(int j=0; j<2880; j++){
+        brain[i][j] = 0;
+      }
     }
   }
 }
@@ -103,6 +121,19 @@ int Q_learning::Episode(int state){
   state=action;
   }while(state<2878);
  
+}
+
+void Q_learning::save_brain(){
+  ofstream file("memory.txt");
+  if(file.is_open()){
+    for(int i=0; i<2880; i++){
+      for(int j=0; j<2880; j++){
+        file<<brain[i][j];
+	file<<"\n";
+      }
+    }
+    file.close();
+  }
 }
 
 void Q_learning::print_32(){

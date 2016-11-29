@@ -1,8 +1,2 @@
 
-..connecting @localhost.10001
--=-=-=-=--=-=-=-=-| Connection established |-=-=--=-=-
-   >> [getInfo]
- <<   [CarCharger;]
-   >> [3]
-I am number : 3
- <<   [1;3;0]
+..connecting @10.131.148.200.10001

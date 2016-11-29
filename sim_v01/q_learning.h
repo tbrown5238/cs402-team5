@@ -13,6 +13,7 @@ public:
 	Q_learning(){
 		gamma = 0.5;
 		epsilon = 0.7;
+		epsilon_min = 0.25;
 		
 		environment.resize(2880, vector<int>(2880));
 		brain.resize(2880, vector<double>(2880));
@@ -21,11 +22,12 @@ public:
 		initialize_environment();
 		initialize_brain();
 	}
-	~Q_learning(){}  //-shouldn't be anything to delete
+	~Q_learning(){ save_brain(); }  //-shouldn't be anything to delete, but make sure to save progress
 
 	//-initialize
 	void initialize_environment();
 	void initialize_brain();
+	void save_brain();
 	
 	//-execute
 	int Episode(int);
@@ -41,6 +43,7 @@ public:
 protected:
 	double gamma;       //gamma parameter to determine how important future goals are
 	double epsilon;     //encourages exploration
+	double epsilon_min; //-minimum exploration coefficient (after "answer" has been found)
 
 	// vector<vector<int> > environment(2880, vector<int>(2880));
 	// vector<vector<double> > brain(2880, vector<double>(2880));
