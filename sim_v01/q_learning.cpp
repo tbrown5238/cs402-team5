@@ -134,8 +134,8 @@ void save_brain(){
     for(int i=0; i<2880; i++){
       for(int j=0; j<2880; j++){
         file<<brain[i][j];
+	file<<"\n";
       }
-      file<<"\n";
     }
     file.close();
   }
@@ -155,9 +155,9 @@ int main(void){
   initialize_brain();
 print_32();
   initialize_environment();
-for(int i=0; i<100; i++){  
+//for(int i=0; i<100; i++){  
   Episode(0);
-}
+//}
   save_brain();
 print_32();
   
