@@ -30,9 +30,10 @@ import matplotlib.pyplot as plt
 #=========================================
 #====== Global Variables (settings) ======
 
+print("beginning execution")
 RUN_SIM = True
 
-MAX_DAYS = 2
+MAX_DAYS = 1
 SIM_LENGTH = 1440*MAX_DAYS  # number of "mintues" simulation will run before ending
 BIDDING_ROUNDS = 3
 
@@ -73,7 +74,27 @@ history = {}      # historical data, indexed on timestamp
 
 #=========================================
 #=============    Classes    =============
-
+class Manual(Thread):
+	'''
+	simple threaded class to allow manual input during script execution
+	'''
+	def __init__(self):
+		self.command = "  "
+		self.exit_flag = False
+		Thread.__init__(self)#set up the thread with this class
+		
+	def run(self):
+		self.command = input("command? : ")
+		while self.command != "":
+			# if (self.command.lower() == "exit"):
+			if (self.command == "done"):
+				print("--><----><----><----><----><----><----><--")
+				self.exit_flag = True
+				break
+		
+		return
+		
+#------------ end of Manual() class -----------------------
 
 class Device():
 	def __init__(self, connection, next_ID):
@@ -158,7 +179,8 @@ class Device():
 		message = message.rstrip("\n")
 		self.last_msg = message
 		tmp_list = message.split(";")
-		if(len(tmp_list)>2):
+		# if(len(tmp_list)>2):  #-both separators are ';'
+		if(len(tmp_list)>1):  #-first separator is ':'
 			self.current = tmp_list[-1]
 		else:
 			print("--><--current NOT set--><--")
@@ -334,6 +356,14 @@ N = 0  #-Total count
 N_min = 0 #-time of day
 N_day = 1 #-day number
 break_flag = False
+
+OVERRIDE = Manual()  #-allow input during execution
+OVERRIDE.start()
+
+
+
+
+
 while RUN_SIM:
 	N += 1
 	# N_min += 1
@@ -363,6 +393,9 @@ while RUN_SIM:
 	
 	#-check if any device sent an "exit" message
 	if break_flag : break
+	
+	#-check for manual override "exit" message
+	if OVERRIDE.exit_flag : break
 	
 	#-print table to file
 	print(N_min, file=output, end="")

@@ -21,6 +21,9 @@ using namespace std;
 
 //-constructor
 comm::comm(){
+	
+	VERBOSE = false;
+	
 	//-initialize basic metadata
 	// host = "10.131.98.44";  //-laptop (sim)
 	// host = "10.131.148.200";//-Pi (appliances)
@@ -72,7 +75,7 @@ bool comm::c_connect(){
 
 //-basic send
 int comm::c_send(string MSG) {
-	cout << " <<   [" << MSG << "]" << endl;
+	if(VERBOSE){ cout << " <<   [" << MSG << "]" << endl; }
 	send(server, MSG.c_str(), MSG.length(), 0);
 	return(1);
 }
@@ -84,7 +87,7 @@ string comm::c_recv() {
 	// return(string(buf));
 	string R = string(buf);
 	R.erase(R.end()-1);
-	cout << "   >> [" << R << "]" << endl;
+	if(VERBOSE){ cout << "   >> [" << R << "]" << endl; }
 	return(R);
 }
 
