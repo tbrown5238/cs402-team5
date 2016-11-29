@@ -4,8 +4,10 @@ CFLAGS = -g -std=c++11
 
 # DEPS = appliance.h bidding.h comm.h time_entry.h
 # OBJS = appliance.o bidding.o comm.o run_test.o
-DEPS = appliance.h comm.h time_entry.h
-OBJS = appliance.o comm.o run_test.o
+DEPS = appliance.h q_learning.h comm.h time_entry.h
+OBJS = appliance.o q_learning.o comm.o run_test.o
+# DEPS = appliance.h comm.h time_entry.h
+# OBJS = appliance.o comm.o run_test.o
 EXES = run_test
 
 all: run_test
