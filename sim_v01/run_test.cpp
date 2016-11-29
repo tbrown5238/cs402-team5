@@ -20,6 +20,7 @@
 #include <string.h>
 #include <string>
 #include <vector>
+#include <list>
 
 #include <iostream>
 #include <fstream>
@@ -56,6 +57,49 @@ void print_usage(){  cout << "Usage: ./run_test [type] [id]\n\t--> [id] no longe
 
 
 //=========================================
+//==  History class
+
+class History{
+//-wrapper for History list
+public:
+	History(){ energy_history.resize(15); }
+	~History(){}
+	
+	//-add new energy value to the list
+	void update(double val){
+		//pop off front
+		energy_history.pop_front();
+		//push [val] to back
+		energy_history.push_back(val);
+		return;
+	}
+	
+	//-get average of past 15min
+	double average(){
+		double avg = 0.0;
+		
+		// for(int i=0;i<15;i++){
+			// avg += energy_history[i];
+		// }
+		
+		// for(list<double>::iterator it = energy_history.begin(); it != energy_history.end(); ++it){
+		for(auto it = energy_history.begin(); it != energy_history.end(); ++it){
+		// for(double V : energy_history){
+			avg += *it;
+			// avg += V;
+		}
+		
+		avg = avg/15;
+		return(avg);
+	}
+	list<double> energy_history;
+	
+};
+//------------ end of History class ------------------------
+
+
+
+//=========================================
 //==  Functions|Prototypes
 
 int checkpoint(int timeA, int timeB) {
@@ -71,6 +115,8 @@ int main(int argc, char* argv[]){
 	int MAX_DAYS = 7;
 	int SIM_LENGTH = 1440*MAX_DAYS;
 	srand(time(NULL));
+	
+	double TIER = 7.0; //-try to keep avg power consumption under this
 	
 	//-----------------------------------------
 	//-  Initialize, parse command line
@@ -170,8 +216,11 @@ int main(int argc, char* argv[]){
 	int N_min = 0; // time of day
 	int N_day = 1; // day number
 	int connected_devices = 1;
+	double energy_spent_total = 0.0;
+	double energy_spent_dev = 0.0;
 	double energy_spent = 0.0;
-	vector<double> energy_history(15);
+	History H;
+	int decision = 0;
 	
 	//-simulate passing of time;
 	//---each time it calls next_line() another 'minute' has passed
@@ -181,14 +230,14 @@ int main(int argc, char* argv[]){
 		cerr << "--<"+(string)myID+">---- - - | " << N << " | - - - - -  - - - - - - -------------------------" << endl;
 		N_min = N%1440;
 		
+		
 		//-while testing, print checkpoint every 120m|3m
 		if(N%1 == 0){
 			
 			//-construct string from data and send to server
-			ss.clear ();
-			ss.str ("");
-			ss << N << ";" << myID << ";" << ME.spent();
-			// ss << N << ";" << myID << ";" << energy_spent;
+			ss.clear();
+			ss.str("");
+			ss << N << ":" << myID << ";" << ME.spent();
 			send_line = ss.str();
 			COMM.c_send(send_line);
 			
@@ -205,24 +254,56 @@ int main(int argc, char* argv[]){
 			COMM.c_send("acknowledged");
 			
 			
+			//-reset energy
+			energy_spent_total = 0.0;
 			//-get current power usage from each other device
 			for(i=0;i<connected_devices;i++){
 				recv_line = COMM.c_recv();
 				COMM.c_send("acknowledged");
 				
 				//-parse data, update total power usage
+				//==========================
+				// /*
+				size_t T = recv_line.find(';', 3);
+				if (T != std::string::npos){
+					recv_line = recv_line.substr (T+1, recv_line.length()-1);
+				}
+				else{
+					cerr << " ~~can't find ;(energy_usage)~~ [" << recv_line << "]" << endl;
+				}
+				cout << "atof(" << recv_line << ")" << endl;
+				
+				
+				energy_spent_dev = atof(recv_line.c_str());
+				// */
+				//--------------------------
+				/*
+				char search[] = recv_line.c_str();
+				char * tok;
+				tok = strtok(search,";");
+				tok = strtok(NULL,";");
+				
+				cerr << "--(tok: " << tok << ")--" << endl;
+				// */
+				
+				//==========================
 
+				energy_spent_total += energy_spent_dev;
 			}
-			
+			cout << "==[" << energy_spent_total << "]==" << endl;
+			H.update(energy_spent_total);
 			
 			//----BIDDING/MAKE DECISION
 			//.. goes here ...
 			if(ME.needs_to_run){
 				//-make decision: Do I remain on, or turn off?
 				
-				// Q.get_decision()
-				// Q.update_power(double double)
-				// Q.update_standby(int)
+				// decision = Q.get_decision(energy_spent_total.average(), TIER, ME.minutes_standby);
+				
+				// Q.update_power(energy_spent_total.average(), TIER);
+				// Q.update_standby(ME.minutes_standby);
+				
+				// Q.update_reward(ME.minutes_standby);
 				
 				// /*
 				if((N_min >= 420) && (N_min < 600)){
@@ -245,7 +326,6 @@ int main(int argc, char* argv[]){
 				// ME.Balance = 0;
 				
 				//-update Balance
-				// energy_spent = ME.spend_energy();
 				ME.spend_energy();
 			}
 		}

@@ -49,6 +49,9 @@ public:
 	int get_bid();
 
 protected:
+	//-options for testing
+	bool VERBOSE;
+	
 	//-basic metadata
     int port;
     string host;
