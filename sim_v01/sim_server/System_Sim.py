@@ -33,7 +33,7 @@ import matplotlib.pyplot as plt
 print("beginning execution")
 RUN_SIM = True
 
-MAX_DAYS = 10
+MAX_DAYS = 30
 SIM_LENGTH = 1440*MAX_DAYS  # number of "mintues" simulation will run before ending
 BIDDING_ROUNDS = 3
 
@@ -449,12 +449,15 @@ while RUN_SIM:
 		#-create graph for the day
 		fig, ax = plt.subplots()
 		
+		plt.axhline(y=4.5, linestyle='dashed', color='y')
+		plt.axis([0, 1440, 0, 7])
+		
 		leg_HV = matplotlib.patches.Patch(color='cyan', label='HVAC')
 		leg_PP = matplotlib.patches.Patch(color='green', label='Pool Pump')
 		leg_CC = matplotlib.patches.Patch(color='red', label='Car Charger')
 		leg_WH = matplotlib.patches.Patch(color='blue', label='Water Heater')
 		
-		plt.legend(handles=[leg_CC, leg_PP, leg_HV, leg_WH])
+		plt.legend(handles=[leg_CC, leg_PP, leg_HV, leg_WH], loc="upper left")
 
 		ax.stackplot(xData, Devices[0].yData, Devices[1].yData, Devices[2].yData, Devices[3].yData)
 		plt.savefig('Smart_day{:03}.png'.format(N_day))

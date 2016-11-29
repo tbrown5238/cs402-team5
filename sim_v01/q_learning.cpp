@@ -120,7 +120,7 @@ double Q_learning::max_next(int next_state){
 int Q_learning::get_decision(double average, double tier, int minutes){
 
   action = choose_action(state);
-  environment[state][action] = tier - average - (double)minutes;
+  environment[state][action] = tier - average - (double)minutes/(tier*2);
   brain[state][action] = environment[state][action] + gamma*max_next(action);
   state = action;
   return action;

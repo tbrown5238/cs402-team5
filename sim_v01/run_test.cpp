@@ -112,11 +112,11 @@ int checkpoint(int timeA, int timeB) {
 //=========================================
 //==  begin "MAIN"
 int main(int argc, char* argv[]){
-	int MAX_DAYS = 10;
+	int MAX_DAYS = 30;
 	int SIM_LENGTH = 1440*MAX_DAYS;
 	srand(time(NULL));
 	
-	double TIER = 5.0; //-try to keep avg power consumption under this
+	double TIER = 4.5; //-try to keep avg power consumption under this
 	
 	//-----------------------------------------
 	//-  Initialize, parse command line
@@ -381,10 +381,12 @@ int main(int argc, char* argv[]){
 	
 	sleep(1);
 	cerr << "\n happy exit :)" << endl;
-	for(i=0;i<4;i++){
-		sleep(1);
-		cerr << " ...";
-	}
+	sleep(1);
+	cerr << " ...";
+	// for(i=0;i<4;i++){
+		// sleep(1);
+		// cerr << " ...";
+	// }
 	cerr << endl;
 	sleep(1);
 	return(0);
