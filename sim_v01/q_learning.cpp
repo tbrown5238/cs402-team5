@@ -35,7 +35,11 @@ void Q_learning::initialize_environment(){
   }
 }
 
+<<<<<<< HEAD
+void initialize_brain(){
+=======
 void Q_learning::initialize_brain(){
+>>>>>>> refs/remotes/origin/Travis
   string str;
   double num;  
   ifstream file;
@@ -136,7 +140,24 @@ void Q_learning::save_brain(){
   }
 }
 
+<<<<<<< HEAD
+void save_brain(){
+  ofstream file("memory.txt");
+  if(file.is_open()){
+    for(int i=0; i<2880; i++){
+      for(int j=0; j<2880; j++){
+        file<<brain[i][j];
+	file<<"\n";
+      }
+    }
+    file.close();
+  }
+}
+
+void print_32(){
+=======
 void Q_learning::print_32(){
+>>>>>>> refs/remotes/origin/Travis
   for(int i=0; i<32; i++){
     for(int j=0; j<32; j++){
       cout<<setprecision(2)<<brain[i][j]<<" ";
@@ -145,3 +166,19 @@ void Q_learning::print_32(){
   }
 }
 
+<<<<<<< HEAD
+int main(void){
+  srand(123);
+  initialize_brain();
+print_32();
+  initialize_environment();
+//for(int i=0; i<100; i++){  
+  Episode(0);
+//}
+  save_brain();
+print_32();
+  
+}
+
+=======
+>>>>>>> refs/remotes/origin/Travis
