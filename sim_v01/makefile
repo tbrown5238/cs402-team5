@@ -13,6 +13,15 @@ all: run_test
 run_test: $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $^
 
+q_learn: q_learning.o q_learn_run.o
+	$(CC) $(CFLAGS) -o $@ $^
+
+q_learning.o: q_learning.cpp q_learning.h
+	$(CC) $(CFLAGS) -c q_learning.cpp
+
+q_learn_run.o: q_learn_run.cpp q_learning.h
+	$(CC) $(CFLAGS) -c q_learn_run.cpp
+
 %.o: %.cpp $(DEPS)
 	$(CC) $(CFLAGS) -c $<
 
@@ -25,6 +34,7 @@ clean:
 #	$@  name of file to be made
 #	$?  names of changed dependents
 
+#### ex:
 ##	$@: $?
 
 

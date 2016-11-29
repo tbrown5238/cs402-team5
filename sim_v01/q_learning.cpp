@@ -3,15 +3,11 @@
 #include <stdlib.h>
 #include <iomanip>
 
+#include "q_learning.h"
+
 using namespace std;
 
-double gamma = 0.5;       //gamma parameter to determine how important future goals are
-double epsilon = 0.7;     //encourages exploration
-
-vector<vector<int> > environment(2880, vector<int>(2880));
-vector<vector<double> > brain(2880, vector<double>(2880));
-
-void initialize_environment(){
+void Q_learning::initialize_environment(){
 
   for(int i=0; i<2880; i++){
     for(int j=0; j<2880; j++){
@@ -35,7 +31,7 @@ void initialize_environment(){
   }
 }
 
-void initialize_brain(){
+void Q_learning::initialize_brain(){
   for(int i=0; i<2880; i++){
     for(int j=0; j<2880; j++){
       brain[i][j] = 0;
@@ -43,7 +39,7 @@ void initialize_brain(){
   }
 }
 
-int choose_action(int state){         //decides which action to take
+int Q_learning::choose_action(int state){         //decides which action to take
   vector<int> action_list;
   
   double r1 = (rand() % 10)/10.0;
@@ -79,7 +75,7 @@ int choose_action(int state){         //decides which action to take
   } 
 }
 
-double max_next(int next_state){
+double Q_learning::max_next(int next_state){
   vector<int> next_action_list;
   double max_value = 0.0;
   for(int j=0; j<2880; j++){          //find all actions
@@ -88,7 +84,7 @@ double max_next(int next_state){
     }
   }
 
-  if(next_action_list.size() > 0){  
+  if(next_action_list.size() > 0){
     if(max_value < brain[next_state][next_action_list[0]])
       max_value = brain[next_state][next_action_list[0]];
     if(max_value < brain[next_state][next_action_list[1]])
@@ -98,8 +94,8 @@ double max_next(int next_state){
   return max_value;
 }
 
-int Episode(int state){
-  int action;  
+int Q_learning::Episode(int state){
+  int action;
   do{
     action = choose_action(state);
     brain[state][action] = environment[state][action] + gamma*max_next(action); //reward + future reward
@@ -107,24 +103,14 @@ int Episode(int state){
   state=action;
   }while(state<2878);
  
-
 }
 
-void print_32(){
+void Q_learning::print_32(){
   for(int i=0; i<32; i++){
     for(int j=0; j<32; j++){
       cout<<setprecision(2)<<brain[i][j]<<" ";
     }
     cout<<endl;
   }
-}
-
-int main(void){
-  srand(123);
-  initialize_brain();
-  initialize_environment();
-  Episode(0);
-
-//  print_32();
 }
 
