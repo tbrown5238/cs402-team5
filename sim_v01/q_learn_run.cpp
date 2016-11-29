@@ -11,15 +11,11 @@ int main(void){
 	srand(123);
 	
 	Q_learning Q;
-	// Q.initialize_environment();
-	// Q.initialize_brain();
-	Q.print_32();
 	
-	for(int i=0; i<100; i++){  
-		Q.Episode(0);
-	}
-
+	Q.get_decision(4, 7, 1);
+	
 	Q.save_brain();
+		
 	Q.print_32();
 	
 	
