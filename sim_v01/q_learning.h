@@ -14,8 +14,9 @@ public:
 		gamma = 0.5;
 		epsilon = 0.7;
 		epsilon_min = 0.25;
-		
-		environment.resize(2880, vector<int>(2880));
+		state = 0;		
+
+		environment.resize(2880, vector<double>(2880));
 		brain.resize(2880, vector<double>(2880));
 		// p.resize(d2, vector<float>(d1,0)
 		
@@ -30,11 +31,14 @@ public:
 	void save_brain();
 	
 	//-execute
-	int Episode(int);
+	int get_decision(double, double, int);
 	
 	//-internal
 	int choose_action(int);
 	double max_next(int);
+	int state;
+	int action;
+	
 	
 	//-for testing
 	void print_32();
@@ -47,7 +51,7 @@ protected:
 
 	// vector<vector<int> > environment(2880, vector<int>(2880));
 	// vector<vector<double> > brain(2880, vector<double>(2880));
-	vector<vector<int> > environment;
+	vector<vector<double> > environment;
 	vector<vector<double> > brain;
 
 };

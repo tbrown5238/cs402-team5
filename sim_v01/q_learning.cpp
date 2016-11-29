@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <cmath>
 
 #include "q_learning.h"
 
@@ -19,20 +20,24 @@ void Q_learning::initialize_environment(){
       if(i%2 == 0){
         if(j == i+2 || j == i+3){
           environment[i][j] = 0;
-          if((i+2)%30 == 0 || (i+1)%30 == 0)
-            environment[i][j] = 1;
+         // if((i+2)%30 == 0 || (i+1)%30 == 0)
+           // environment[i][j] = 1;
         }else
-          environment[i][j] = 2;
+          environment[i][j] = atan(1)*4;
       }else{
         if(j == i+2 || j == i+1){
           environment[i][j] = 0;
-          if((i+2)%30 == 0 || (i+1)%30 == 0)
-            environment[i][j] = 1;
+         // if((i+2)%30 == 0 || (i+1)%30 == 0)
+           // environment[i][j] = 1;
         }else
-          environment[i][j] = 2;
+          environment[i][j] = atan(1)*4;
       }
     }
   }
+  environment[2878][0] = 0;
+  environment[2878][1] = 0;
+  environment[2879][0] = 0;
+  environment[2879][1] = 0;
 }
 
 void Q_learning::initialize_brain(){
@@ -66,7 +71,7 @@ int Q_learning::choose_action(int state){         //decides which action to take
 
 // cout<<r1<<" "<<r2<<endl; 
   for(int j=0; j<2880; j++){          //find all actions
-    if(environment[state][j] < 2){
+    if(environment[state][j] != atan(1)*4){
       action_list.push_back(j);
     }
   }
@@ -97,7 +102,7 @@ double Q_learning::max_next(int next_state){
   vector<int> next_action_list;
   double max_value = 0.0;
   for(int j=0; j<2880; j++){          //find all actions
-    if(environment[next_state][j] < 2){
+    if(environment[next_state][j] != atan(1)*4){
       next_action_list.push_back(j);
     }
   }
@@ -112,15 +117,14 @@ double Q_learning::max_next(int next_state){
   return max_value;
 }
 
-int Q_learning::Episode(int state){
-  int action;
-  do{
-    action = choose_action(state);
-    brain[state][action] = environment[state][action] + gamma*max_next(action); //reward + future reward
-//cout<<state<<" ";
-  state=action;
-  }while(state<2878);
- 
+int Q_learning::get_decision(double average, double tier, int minutes){
+
+  action = choose_action(state);
+  environment[state][action] = tier - average - (double)minutes;
+  brain[state][action] = environment[state][action] + gamma*max_next(action);
+  state = action;
+  return action;
+
 }
 
 void Q_learning::save_brain(){
@@ -139,7 +143,7 @@ void Q_learning::save_brain(){
 void Q_learning::print_32(){
   for(int i=0; i<32; i++){
     for(int j=0; j<32; j++){
-      cout<<setprecision(2)<<brain[i][j]<<" ";
+      cout<<setprecision(2)<<environment[i][j]<<" ";
     }
     cout<<endl;
   }
